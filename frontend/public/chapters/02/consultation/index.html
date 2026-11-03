@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TAXFLOW 납세자 상담 화면 샘플">
+  <title>납세자 상담 · TAXFLOW</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../../../index.html#overview"><span class="brand-mark">tf</span><span>TAXFLOW <small>PRACTICE STUDIO</small></span></a>
+    <nav aria-label="이동"><a href="../">챕터 02</a><a href="../../../index.html#overview">전체 여정</a></nav>
+  </header>
+  <main class="layout">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="eyebrow">CHAPTER 02 / CONSULTATION</div>
+      <h1 id="page-title">납세자 상담</h1>
+      <p>처음 들은 이야기와 확인한 자료를 나누어 기록합니다. 아래 입력값은 이 브라우저 화면에서만 요약하며 저장하거나 전송하지 않습니다.</p>
+      <div class="notice"><strong>교육용 화면</strong><span>가상자료로 사용하세요. 이 페이지는 세무 판단이나 신고서 작성 기능을 제공하지 않습니다.</span></div>
+    </section>
+    <div class="workspace">
+      <form id="consultation-form" class="form-panel" autocomplete="off">
+        <div class="panel-heading"><div><span class="section-number">01</span><h2>상담 기록</h2></div><span class="panel-hint">진술과 증빙을 구분하세요</span></div>
+        <div class="field-grid">
+          <label>사건 ID<input name="caseId" placeholder="예: CASE-A" maxlength="32"></label>
+          <label>상담일<input name="consultedAt" type="date"></label>
+          <label>자산 유형<select name="assetType"><option value="">선택</option><option>주택</option><option>입주권·분양권</option><option>토지</option><option>기타</option></select></label>
+          <label>거래 상태<select name="transactionStatus"><option value="">선택</option><option>양도 예정</option><option>양도 완료</option><option>확인 필요</option></select></label>
+          <label>취득일 진술<input name="acquiredAt" type="date"></label>
+          <label>양도일 진술<input name="transferredAt" type="date"></label>
+        </div>
+        <label class="full-field">세대·보유 주택 관련 진술<textarea name="householdStatement" rows="3" placeholder="상담 중 들은 내용을 적고, 확인이 필요한 부분은 구분하세요."></textarea></label>
+        <label class="full-field">거주 관련 진술<textarea name="residenceStatement" rows="3" placeholder="실제 입주·퇴거 시점과 초본 확인 여부 등을 기록하세요."></textarea></label>
+        <fieldset class="evidence"><legend><span class="section-number">02</span> 수취한 증빙</legend><p>받았다는 사실과 내용이 확인됐다는 판단은 다릅니다.</p><div class="checks"><label><input type="checkbox" name="evidence" value="양도계약서"> 양도계약서</label><label><input type="checkbox" name="evidence" value="취득계약서"> 취득계약서</label><label><input type="checkbox" name="evidence" value="주민등록초본"> 주민등록초본</label><label><input type="checkbox" name="evidence" value="대금자료"> 대금자료</label></div></fieldset>
+        <label class="full-field">충돌·누락 및 후속 질문<textarea name="followUp" rows="3" placeholder="예: 전입일과 실제 입주 진술이 다름 · 입주일 증빙 요청"></textarea></label>
+        <div class="form-actions"><button type="button" id="load-sample" class="primary">가상 예시 채우기</button><button type="reset" class="secondary">입력 지우기</button></div>
+      </form>
+      <aside class="summary-panel" aria-labelledby="summary-title">
+        <div class="summary-top"><span>LIVE PREVIEW / CASE NOTE</span><span class="status">확인 전</span></div>
+        <h2 id="summary-title">상담 요약</h2>
+        <p class="summary-lead">입력한 내용이 여기에 정리됩니다. 원문 증빙과 대조하기 전에는 확정 사실로 취급하지 않습니다.</p>
+        <dl id="summary-list" aria-live="polite"></dl>
+        <div class="summary-followup"><small>후속 확인</small><p id="summary-followup">입력된 질문이 없습니다.</p></div>
+        <a class="back-link" href="../../../index.html#mission-3">미션 03 안내로 돌아가기 <span aria-hidden="true">→</span></a>
+      </aside>
+    </div>
+  </main>
+  <footer>교육용 가상자료 · 저장·전송·자동 판단 기능 없음</footer>
+</body>
+</html>
