@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="스캔부터 신고 전 검토까지 7개 자동화 모듈을 경험하는 로컬 AI 교육 디자인 프리뷰">
+  <title>TAXFLOW — 양도소득세 자동화 여정</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23715cf1'/%3E%3Cpath d='M8 10h16M16 10v14M8 16h5M19 16h5' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="missions.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 이동</a>
+  <div class="mobile-shade" data-action="close-menu"></div>
+  <aside class="sidebar" aria-label="교육 내비게이션">
+    <a class="brand" href="#overview" aria-label="TAXFLOW 전체 여정"><span class="brand-mark">t<span>f</span></span><span>TAXFLOW<small>PRACTICE STUDIO</small></span></a>
+    <div class="course-switch"><span class="course-glyph">양</span><span>양도소득세 자동화<small>로컬 AI 워크숍 · Course 01</small></span><span class="switch-dots">···</span></div>
+    <nav id="primary-nav" class="primary-nav"></nav>
+    <div class="side-label">YOUR MISSIONS <span>7</span></div>
+    <nav id="mission-nav" class="mission-nav"></nav>
+    <div class="sidebar-bottom"><div class="side-progress-label"><span>나의 학습 여정</span><b id="side-count">0 / 7</b></div><div class="progress-track"><span id="side-progress"></span></div><button class="side-help" data-action="about"><span>수업 안내 · 디자인 레퍼런스</span><span>↗</span></button><div class="sidebar-foot">DESIGNED FOR TAX PROFESSIONALS</div></div>
+  </aside>
+  <div class="app-frame">
+    <header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-menu" data-action="menu" aria-label="메뉴 열기">☰</button><span class="breadcrumb-home">실무 아카데미</span><span class="slash">/</span><span id="breadcrumb-current">양도소득세</span></div><div class="top-actions"><span class="preview-label"><span></span>디자인 프리뷰</span><button class="presentation-button" data-action="present"><span id="present-icon"></span><span id="present-label">발표 모드</span></button></div></header>
+    <main id="main" tabindex="-1"></main>
+    <footer class="page-footer"><span>TAXFLOW <i>•</i> 세무 전문가를 위한 학습 경험</span><span>교육용 가상자료 · AI 분석·세액 계산·신고 기능 미연결</span></footer>
+  </div>
+  <dialog id="dialog"><div id="dialog-content"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

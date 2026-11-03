@@ -1,0 +1,140 @@
+/* Display-only prototype. No model calls, file uploads, calculations, or filing. */
+(() => {
+  'use strict';
+  const M = COURSE.missions;
+  const state = {done:new Set(),checks:{},tab:'guide',reviewItem:6};
+  const $ = selector => document.querySelector(selector);
+  const icons = {
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    file:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',
+    files:'<path d="M14 6H7a2 2 0 0 0-2 2v12h13V10zM14 6v4h4M9 14h5M9 17h4M9 3h8l4 4v10"/>',
+    briefcase:'<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V4h8v3M3 12a22 22 0 0 0 18 0M10 13v3h4v-3"/>',
+    timeline:'<path d="M6 3v18M10 6h10M10 12h6M10 18h10"/><circle cx="6" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="6" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="6" cy="18" r="2" fill="currentColor" stroke="none"/>',
+    home:'<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/>',
+    search:'<circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6M7 8h6M7 11h4"/>',
+    calculator:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h1M12 11h1M16 11h0M8 15h1M12 15h1M16 15h0M8 19h1M12 19h1M16 19h0"/>',
+    compare:'<rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/><path d="M5 8h3M5 12h3M16 8h3M16 12h3M5 16h3M16 16h3"/>',
+    send:'<path d="m3 10 18-7-7 18-3-8-8-3ZM11 13l10-10"/>',
+    archive:'<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v13h14V8M9 12h6"/>',
+    spark:'<path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6ZM20 2v4M18 4h4"/>',
+    arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+    back:'<path d="M20 12H4m6-6-6 6 6 6"/>',
+    check:'<path d="m5 12 4 4L19 6"/>',
+    shield:'<path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/>',
+    screen:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    close:'<path d="m6 6 12 12M18 6 6 18"/>',
+    teacher:'<path d="m2 9 10-5 10 5-10 5zM6 12v5c4 3 8 3 12 0v-5M22 9v8"/>',
+    coffee:'<path d="M4 8h12v8c0 3-12 3-12 0zM16 9h2a3 3 0 0 1 0 6h-2M3 21h16M7 2v3M12 2v3"/>',
+    folder:'<path d="M3 6h7l2 3h9v11H3zM3 6V4h7l2 2h8v3"/>',
+    refresh:'<path d="M20 7a8 8 0 1 0 0 10M20 3v5h-5"/>'
+  };
+  const icon = (name,cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24" aria-hidden="true">${icons[name]||icons.file}</svg>`;
+  const num = n => String(n).padStart(2,'0');
+  const badge = m => `<span class="badge ${m.type==='흐름 소개'?'outline':m.type==='조건부 실습'?'amber':'purple'}">${m.type}</span>`;
+  const route = () => location.hash.slice(1)||'overview';
+  const currentMission = () => M.find(m=>route()===`mission-${m.id}`);
+  const nextId = () => M.find(m=>!state.done.has(m.id))?.id||M.length;
+  $('#present-icon').innerHTML=icon('screen');
+
+  function nav(){
+    const r=route();
+    $('#primary-nav').innerHTML=[['overview','grid','전체 여정'],['agenda','clock','강의 타임라인'],['review','compare','업무 검토표'],['outputs','files','결과물 미리보기']].map(([id,i,t])=>`<a href="#${id}" class="primary-link ${r===id?'active':''}" ${r===id?'aria-current="page"':''}>${icon(i)}<span>${t}</span>${id==='overview'?'<span class="nav-count">10</span>':''}</a>`).join('');
+    $('#mission-nav').innerHTML=M.map(m=>`<a href="#mission-${m.id}" class="mission-link ${r===`mission-${m.id}`?'active':''} ${state.done.has(m.id)?'done':''}" ${r===`mission-${m.id}`?'aria-current="page"':''}><span class="step-number">${state.done.has(m.id)?'✓':num(m.id)}</span><span>${m.short}</span>${r===`mission-${m.id}`?'<span class="tiny-dot"></span>':''}</a>`).join('');
+    $('#side-count').textContent=`${state.done.size} / ${M.length}`;
+    $('#side-progress').style.width=`${state.done.size/M.length*100}%`;
+    $('#breadcrumb-current').textContent=currentMission()?.short||({agenda:'강의 타임라인',outputs:'결과물 미리보기',overview:'양도소득세',review:'내용 정리 · 업무 검토표',gate:'제출 전 신고서 검토',draft:'신고서 작성',submission:'신고·납부 인계'}[r]||'양도소득세');
+  }
+  function houseArt(){return `<svg class="house-art" viewBox="0 0 180 85" fill="none" aria-hidden="true"><path d="m30 62 58-31 63 27-60 24z" fill="#f3eff9"/><path d="M58 61V31l33-19 33 19v30L91 79Z" stroke="#b6a4d7"/><path d="m58 31 33 17 33-17M91 48v31M73 23l34 17M73 39v29M107 40v30" stroke="#c9bae2"/><path d="M91 12V4l33 19v8M91 4 58 23v8" stroke="#a98ecb"/><path d="m65 44 10 5v11l-10-5zM81 52l6 3v9l-6-3zM99 54l12-7v16l-12 7z" fill="#eee7f8" stroke="#c0a9dc"/><path d="m33 62 21 11M133 66l17-9" stroke="#d9cfeb"/><circle cx="38" cy="45" r="3" fill="#d1c2e6"/><path d="M38 48v13" stroke="#bdabd6"/></svg>`;}
+  function overview(){
+    return `<section class="page overview-page"><div class="hero"><div class="hero-copy"><div class="eyebrow"><span class="line"></span>양도소득세 × 로컬 AI</div><h1>서류 한 묶음,<br><span>검토까지 이어지다.</span></h1><p>스캔 · 문자 추출 · 사실 구조화 · 신고 전 대조.<br>이미 아는 실무를, 반복 가능한 자동화로 바꿉니다.</p><div class="hero-actions"><a class="button primary" href="#mission-${nextId()}">${state.done.size?'다음 미션 이어가기':'첫 번째 미션 시작'}${icon('arrow')}</a><a class="text-button" href="#agenda">강의 진행 살펴보기 ${icon('arrow')}</a></div></div><div class="hero-visual" aria-label="교육용 사건 검토 파일 일러스트"><div class="visual-grid"></div><div class="orbit"></div><div class="orbit second"></div><div class="case-sheet"><div class="sheet-top"><span>CASE FILE / A</span><span>2026</span></div><div class="sheet-title">주택 양도 검토</div>${houseArt()}<div class="sheet-row"><span>양도가액</span><b>1,300,000,000</b></div><div class="sheet-row"><span>검토 자료</span><b>증빙 10쪽</b></div><div class="sheet-bars"><span></span><span></span><span></span><span></span></div></div><div class="floating-note top"><span class="check-symbol">✓</span><span><small>STEP BY STEP</small><strong>SCAN → STRUCTURE</strong></span></div><div class="floating-note bottom">${icon('file')}<span><small>YOUR DELIVERABLE</small><strong>근거가 남는 자동화</strong></span></div><span class="hero-caption">A CASE. A JOURNEY. YOUR PRACTICE.</span></div></div>
+      ${workflowMap()}<div class="section-heading"><h2>자동화를 완성하는 7개 모듈 <small>모든 단계를 자유롭게 미리 볼 수 있어요</small></h2></div>
+      <div class="mission-grid">${M.map(m=>`<a href="#mission-${m.id}" class="mission-card ${state.done.has(m.id)?'done':''}"><div class="card-top"><span class="card-icon">${icon(state.done.has(m.id)?'check':m.icon)}</span><span class="card-num">${num(m.id)}</span></div><h3>${m.short}</h3><div class="card-output">${m.output}</div><div class="card-bottom"><span>${m.minutes}분 · ${m.type}</span>${state.done.has(m.id)?'<b class="green">학습 완료</b>':icon('arrow')}</div></a>`).join('')}</div>
+      <div class="overview-bottom"><div class="method-note"><span class="label">LOCAL AI WORKFLOW</span><p><b>로컬 AI로 문서를 추출·구조화하고</b><br>근거와 오류를 검증해 사무소에 맞는 자동화 흐름을 설계합니다.</p></div></div></section>`;
+  }
+  function workflowMap(){return `<div class="workflow-map">${COURSE.workflow.map(w=>`<a class="workflow-step" href="#${w.href}"><span class="workflow-number">0${w.id}</span><span class="workflow-icon">${icon(w.icon)}</span><h3>${w.title}</h3><p>${w.sub}</p><small>${w.role}</small></a>`).join('')}</div>`;}
+  function reviewPage(gate){
+    const item=COURSE.checklist.find(x=>x.id===state.reviewItem)||COURSE.checklist[0];
+    return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">${gate?'BEFORE SUBMISSION / 4 → 5':'AI WORKSPACE / STEP 03'}</div><h1>${gate?'작성한 신고서를, 제출 전에.':'사실을 정리하고, 쟁점을 연결합니다.'}</h1><p>${gate?'승인된 기준과 신고서 사이의 차이를 확인하는 검토 화면':'11개 검토 항목을 따라 사실·근거·부족자료를 함께 정리하는 화면'}</p></div><span class="badge purple">AI 활용 중심 ${gate?'②':'①'}</span></div><div class="review-mode-tabs"><a class="${!gate?'active':''}" href="#review">03 내용 정리</a><a class="${gate?'active':''}" href="#gate">04 → 05 제출 전 검토</a><span>작성된 교육용 화면 예시</span></div>${gate?`<div class="gate-comparison"><div><span class="eyebrow">CHECK 10</span><h3>계산 자체가 맞는가?</h3><p>승인된 입력·규칙 → 구현 결과<br>독립 검산과 중간값을 대조합니다.</p><span class="badge amber">검산 기준 확인 필요</span></div>${icon('arrow')}<div><span class="eyebrow">CHECK 11</span><h3>신고서에 정확히 옮겼는가?</h3><p>검증한 계산 결과 → 신고서 기재값<br>항목·쪽수·최초 차이를 대조합니다.</p><span class="badge amber">담당자 확인 후 제출</span></div></div>`:`<div class="review-intro"><span class="review-ai-symbol">${icon('spark')}</span><div><strong>AI가 준비할 것</strong><p>사실관계 요약 · 법적 쟁점 후보 · 출처 연결 · 충돌·누락 목록</p></div><div class="review-human"><strong>세무사가 확인할 것</strong><p>사실 확정 · 적용 규칙 · 예외 판단 · 최종 승인</p></div></div>`}<div class="review-layout"><div class="review-list"><div class="review-list-head"><h2>업무 검토표 <span>11</span></h2><small>항목을 선택해 확인사항을 살펴보세요</small></div>${COURSE.checklist.map(c=>`<button class="review-row ${c.id===item.id?'selected':''} ${gate&&c.id>=10?'gate-focus':''}" data-review-item="${c.id}"><span class="review-row-number">${num(c.id)}</span><span class="review-row-label"><strong>${c.title}</strong><small>${c.source}</small></span><span class="review-row-status">${gate&&c.id>=10?'대조 대상':'확인 항목'}</span>${icon('arrow')}</button>`).join('')}</div><aside class="review-detail"><div class="eyebrow">CHECKPOINT ${num(item.id)}</div><h2>${item.title}</h2><p class="review-question">${item.question}</p><div class="review-detail-block"><small>필요한 근거</small><p>${item.evidence}</p></div><div class="review-detail-block"><small>검토할 때 유의할 점</small><p>${item.note}</p></div><div class="review-detail-block"><small>결과에 남길 항목</small><p>확인 사실 / 출처·쪽수 / 판단상태<br>추가 요청자료 / 담당자 확인</p></div>${item.id===6?'<button class="button secondary" data-action="residence">초본과 계약서로 충분할까요? →</button>':''}<a class="button primary" href="#mission-${item.mission}">관련 학습 미션 보기 ${icon('arrow')}</a><p class="detail-disclaimer">이 화면의 항목은 검토 구조를 보여줍니다. 실제 AI 분석이나 법적 결론은 생성하지 않습니다.</p></aside></div><div class="review-bottom-flow"><span>① 상담</span>${icon('arrow')}<span>② 자료</span>${icon('arrow')}<b>③ 정리</b>${icon('arrow')}<a href="#draft">④ 작성</a>${icon('arrow')}<a href="#gate">제출 전 검토</a>${icon('arrow')}<span>⑤ 제출</span></div></section>`;
+  }
+  function draftPage(){return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">STEP 04 / PREPARE THE RETURN</div><h1>검토한 내용을, 신고서로.</h1><p>세무사가 확인한 사실과 적용 규칙을 신고서 작성에 연결합니다.</p></div><span class="badge outline">세무사 작성·확인</span></div><div class="draft-layout"><div class="draft-paper"><div class="draft-paper-top"><span>EDUCATIONAL WORKSHEET</span><span>CASE A / 04</span></div><h2>양도소득세 신고서<br><span>작성 항목 구성 예시</span></h2><p class="draft-paper-note">실제 신고서 서식이나 제출용 문서가 아닙니다.</p>${table(['작성할 항목','가져올 검토 결과'],[['납세자·대상 자산','사건 접수 카드 / 자산 현황'],['취득·양도 일자 및 가액','사실관계표 / 원문 증빙'],['비과세·공제 적용','세대·거주·지역·예외 검토'],['필요경비','지출 내역 / 경비 해당 여부'],['과세표준·산출세액 등','승인된 규칙의 계산 검토표'],['첨부자료','자료대장 / 해당 증빙']])}<div class="draft-signoff"><span>작성 담당</span><span>최종 확인 담당</span><span>확인일</span></div></div><aside class="draft-side"><span class="eyebrow">BEFORE YOU SUBMIT</span><h2>작성 후, 검토를 한 번 더.</h2><p>11개 업무 항목의 확인사항이 신고서에 반영되었는지 점검합니다. 계산 자체의 검증과 신고서로 옮긴 값의 대조를 구분합니다.</p><a class="button primary" href="#gate">제출 전 검토로 이동 ${icon('arrow')}</a><a class="button secondary" href="#review">내용 정리 다시 보기</a><div class="draft-note">제출은 별도의 5단계입니다.<br>이 프로토타입은 신고서 작성·제출을 실행하지 않습니다.</div></aside></div></section>`;}
+  function residenceModal(){modal(`<div class="dialog-inner"><div class="dialog-top"><h2>거주기간 자료, 어디까지 알 수 있나요?</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p><b>주민등록초본 + 주택 취득 시 매매계약서</b>는 첫 정리를 시작할 자료입니다. 자료의 이름만으로 실제 거주와 비과세 요건 전체를 확정할 수는 없습니다.</p>${table(['자료','확인할 수 있는 내용'],[['주민등록초본','주소 변동·전입·전출 이력'],['주택 취득계약서','취득 거래·계약일·약정내용'],['상담메모','실제 입주·퇴거·전입 지연 등 진술']])}<p>기본 이력과 실제 거주 진술이 일치하는지 먼저 대조합니다. 불일치나 의문이 있는 경우에 한해 실제 입주·퇴거 및 사용을 뒷받침하는 추가 자료를 요청합니다. 매매계약서 자체는 실제 거주를 증명하는 자료가 아닙니다.</p><p>취득시기·보유기간까지 검토하려면 실제 잔금 지급·등기접수 자료도 함께 확인합니다. 기존 교육사례는 E05에 주소이력과 실제 거주가 일치한다는 가정을 별도로 제공합니다.</p><div class="reference-links"><a href="https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1032215465" target="_blank" rel="noopener noreferrer">시행령 제154조 ↗</a><a href="https://taxlaw.nts.go.kr/pd/USEPDA002P.do?ntstDcmId=000000000000130780" target="_blank" rel="noopener noreferrer">국세법령정보시스템 판례 ↗</a></div><p style="font-size:10px">실제 자료의 내용과 해당 거래일 적용 규정은 담당 세무사가 확인합니다. 이 화면은 자료의 역할을 설명하는 교육 예시입니다.</p><div class="dialog-actions"><button class="button primary" data-action="close">검토표로 돌아가기</button></div></div>`);}
+  function shell(title,body,footer='미리 작성한 교육용 예시 · 실제 처리 결과가 아닙니다.'){
+    return `<div class="sample-canvas"><div class="sample-bar"><strong>${title}</strong><span>CASE A · SAMPLE</span></div>${body}<div class="sample-footer">${icon('shield')}<span>${footer}</span></div></div>`;
+  }
+  function table(headers,rows){return `<table class="sample-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
+  function doc(name,id){return `<div class="doc-cell">${icon('file')}<span><strong>${name}</strong><br><span class="sample-id">${id}</span></span></div>`;}
+  function worksheet(id){
+    const m=M[id-1];
+    return shell(m.output, `<div class="automation-stage"><span class="eyebrow">AUTOMATION MODULE ${num(id)}</span><h3>${m.short}</h3><p>${m.subtitle}</p><div class="pipeline-labels"><span>입력 자료</span>${icon('arrow')}<span>자동 처리 설계</span>${icon('arrow')}<span>결과·확인 지점</span></div></div>${table(['항목','처리 결과·조건 예시'],m.sampleRows)}<div class="automation-handoff"><b>다음 단계로 넘기는 조건</b><p>${m.checks.join(' / ')}</p></div>`, '미리 작성한 교육용 예시 · OCR 실행·AI 분석·계산·평가 결과가 아닙니다.');
+  }
+  function submissionPage(){return `<section class="page"><div class="page-header"><div><div class="eyebrow">STEP 05 / HUMAN HANDOFF</div><h1>승인한 자료를, 신고 담당자에게.</h1><p>자동화 7모듈의 산출물을 실제 신고 업무에 인계합니다.</p></div></div>${shell('제출·납부 인계 확인',table(['업무','담당자 확인사항'],[['최종 승인','미해결 사항 처리·신고서와 첨부자료 확정'],['제출','담당자가 실제 신고 경로에서 제출'],['접수 확인','접수 결과 및 오류 여부 확인'],['납부 확인','국세·지방소득세 해당 업무와 납부 확인'],['기록 보관','최종본·접수·납부 확인자료 보관']]))}<div class="submission-actions"><a class="button primary" href="#gate">제출 전 검토 확인 ${icon('arrow')}</a></div></section>`;}
+  function tabContent(m){
+    if(state.tab==='sample')return `<div class="sample-caption"><span>WORKSPACE PREVIEW</span><span>미리 작성한 예시</span></div>${worksheet(m.id)}<p class="sample-note">이 미션에서 남길 결과물: <b>${m.output}</b></p>`;
+    if(state.tab==='criteria')return `<div class="mission-brief"><strong>이 세 가지를 설명할 수 있다면</strong>아래 기준을 스스로 확인한 후 학습 완료를 표시하세요. 실제 업무의 승인과는 별개입니다.</div><div class="criteria-list">${m.checks.map(t=>`<div class="criterion">${icon('check')}<span>${t}</span></div>`).join('')}</div><div class="criteria-note">근거가 부족할 때 “판단유보”와 필요한 추가 자료를 말할 수 있는 것도 중요한 학습 결과입니다. 완료 표시는 정답 판정이나 신고 승인 기능이 아닙니다.</div>`;
+    return `<div class="mission-brief"><strong>${m.goal}</strong>${m.brief}</div><div class="step-instructions">${m.steps.map((t,i)=>`<div class="instruction"><span>${num(i+1)}</span><p>${t}</p></div>`).join('')}</div><div class="prompt-box"><div class="prompt-label"><span>수업에서 사용할 질문 예시</span>${icon('spark')}</div><p>${m.prompt}</p></div><button class="button secondary view-sample" data-tab="sample">작업 화면 예시 보기 ${icon('arrow')}</button>`;
+  }
+  function missionPage(m){
+    const checks=state.checks[m.id]||[false,false,false];
+    return `<section class="page mission-page"><a class="back-link" href="#overview">${icon('back')}전체 여정으로</a><div class="mission-heading"><div><div class="eyebrow">MISSION ${num(m.id)} <span style="color:#c6bfd0">/ ${M.length}</span> <span>· ${m.phase}</span></div><h1>${m.title}</h1><p>${m.subtitle}</p></div><div class="mission-time">${badge(m)}${icon('clock')}<span class="duration">${m.minutes}분</span></div></div><div class="mini-path" aria-label="전체 7개 미션에서 현재 위치">${M.map(x=>`<a href="#mission-${x.id}" class="${x.id===m.id?'active':''} ${state.done.has(x.id)?'done':''}" aria-label="미션 ${x.id}: ${x.short}" ${x.id===m.id?'aria-current="step"':''}></a>`).join('')}</div>
+      <div class="mission-layout"><div><div class="mission-workspace"><div class="workspace-tabs" role="tablist" aria-label="미션 화면">${[['guide','미션 안내'],['sample','작업 화면'],['criteria','완료 기준']].map(([t,n])=>`<button role="tab" id="tab-${t}" aria-controls="mission-panel" aria-selected="${state.tab===t}" class="${state.tab===t?'active':''}" data-tab="${t}">${n}</button>`).join('')}</div><div class="tab-content" id="mission-panel" role="tabpanel" aria-labelledby="tab-${state.tab}">${tabContent(m)}</div></div><details class="teacher-note"><summary>${icon('teacher')}강사 진행 노트</summary><p>${m.note}</p></details><div class="mission-nav-bottom">${m.id>1?`<a href="#mission-${m.id-1}">${icon('back')}이전 미션</a>`:'<span></span>'}${m.id<M.length?`<a href="#mission-${m.id+1}">다음 미션 미리보기${icon('arrow')}</a>`:'<a href="#outputs">결과물 전체 보기 →</a>'}</div></div>
+      <aside class="completion-panel"><div class="eyebrow">YOUR TAKEAWAY</div><h3>완료하면 남는 것</h3><div class="deliverable-mini">${icon('file')}<span><small>MISSION ${num(m.id)} OUTPUT</small>${m.output}</span></div><div class="check-heading"><span>학습 확인</span><span id="check-count">${checks.filter(Boolean).length} / 3</span></div><div class="checks">${m.checks.map((t,i)=>`<label class="completion-check"><input type="checkbox" data-check="${i}" ${checks[i]?'checked':''}><span>${t}</span></label>`).join('')}</div><button class="button primary" id="complete-button" data-action="complete" ${!checks.every(Boolean)?'disabled':''}>${state.done.has(m.id)?'완료한 미션 다시 보기':'학습 완료 표시'}${icon('check')}</button><p class="completion-help">학습 확인 3개를 체크하면 완료할 수 있어요.<br>완료 표시는 현재 페이지를 새로 열면 초기화됩니다.</p></aside></div></section>`;
+  }
+  function agenda(){
+    return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">THE CLASS, AT A GLANCE</div><h1>오늘, 이렇게 진행합니다.</h1><p>업무를 배우는 시간을 줄이고, 자동화를 검증하는 시간을 늘립니다.</p></div><span class="badge purple">4시간 집중 워크숍</span></div><div class="agenda-summary"><div><div class="eyebrow">ONE CASE. FOUR CHAPTERS.</div><h2>실행하고, 확인하고, 적용하기.</h2><p>사전 준비된 실행본으로 7모듈을 경험하고, 결과물의 실무 적용 범위를 토의합니다.<br>현재 화면은 강의 설계 프리뷰이며 실행 기능은 연결 전입니다.</p></div><div class="agenda-duration"><strong>240</strong><span>분의 여정<small>모듈 실습 180분 + 적용 토의 30분 + 휴식 30분</small></span></div></div><div class="agenda-track">${COURSE.sessions.map((s,i)=>`<article class="agenda-card"><div class="agenda-time"><b>${s.n}</b><span>${s.time}<br>${s.minutes}분</span></div><div class="agenda-content"><h3>${s.title}</h3><p>${s.desc}</p><div class="agenda-tags">${s.missions.map(id=>`<a href="#mission-${id}">${num(id)} ${M[id-1].short}</a>`).join('')}</div></div></article>${i<3?`<div class="break-row">${icon('coffee')}10분 휴식 · 질문을 정리하고 다음 미션을 준비하세요</div>`:''}`).join('')}</div><div class="after-course"><div class="section-heading"><h3>이후에도, 같은 결과물을 발전시킵니다.</h3><span class="badge outline">2주 간격 · 후속 과정 제안</span></div><div class="followup-flow">${[['2회 · 3시간','문서 품질·OCR'],['3회 · 4시간','근거 검색·시점 관리'],['4회 · 4시간','계산·신고서 대조'],['5회 · 4시간','사무소별 화면·양식'],['6회 · 3시간','시범 운영·개선']].map(([t,n])=>`<div><small>${t}</small>${n}</div>`).join('')}</div></div></section>`;
+  }
+  function outputs(){
+    return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">YOUR PRACTICE LIBRARY</div><h1>미션이 쌓이면, 업무가 정리됩니다.</h1><p>각 단계에서 만들 결과물의 형태를 먼저 살펴보세요.</p></div></div><div class="output-intro"><div><h2>나의 실무 도구함</h2><p>스캔 입력부터 검토 리포트까지 연결되는 7개의 결과물 예시</p></div><span class="badge outline">생성된 파일이 아닌 화면 예시입니다</span></div><div class="output-grid">${M.map(m=>`<button class="output-card" data-output="${m.id}"><div class="output-paper-preview"><span class="paper-mission">MISSION ${num(m.id)}</span><div class="mini-document"><strong>${m.short}</strong><span></span><span></span><span></span><span></span><span></span></div></div><div class="output-info"><small>${m.phase} · ${m.type}</small><h3>${m.output}</h3><p>${state.done.has(m.id)?'학습 확인을 마친 미션':'미션에서 확인할 결과물'}</p><span class="output-link">예시 열기 ${icon('arrow')}</span></div></button>`).join('')}</div></section>`;
+  }
+  function render(resetScroll=true){
+    const r=route(),m=currentMission();
+    $('#main').innerHTML=m?missionPage(m):r==='agenda'?agenda():r==='outputs'?outputs():r==='review'?reviewPage(false):r==='gate'?reviewPage(true):r==='draft'?draftPage():r==='submission'?submissionPage():overview();nav();
+    document.title=`${m?m.short:r==='agenda'?'강의 타임라인':r==='outputs'?'결과물 미리보기':'양도소득세 실무 여정'} — TAXFLOW`;
+    document.body.classList.remove('menu-open');
+    if(resetScroll)window.scrollTo({top:0,behavior:'instant'});
+  }
+  function updateTab(tab){
+    state.tab=tab;const m=currentMission();if(!m)return;
+    document.querySelectorAll('.workspace-tabs button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',String(b.dataset.tab===tab));});
+    $('#mission-panel').setAttribute('aria-labelledby',`tab-${tab}`);$('#mission-panel').innerHTML=tabContent(m);
+  }
+  function modal(content){$('#dialog-content').innerHTML=content;$('#dialog').showModal();}
+  function close(){if($('#dialog').open)$('#dialog').close();}
+  function about(){modal(`<div class="dialog-inner"><div class="dialog-top"><h2>실무를 따라 배우는, TAXFLOW</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>실무에 능통한 세무사를 대상으로 스캔·추출·구조화·검토 자동화의 7모듈을 보여주는 교육용 디자인 프로토타입입니다. 특수자산·복잡한 특례는 후속 과정에서 확장합니다.</p><p>화면 이동, 예시 보기, 학습 완료 표시만 동작합니다. AI 분석·파일 처리·세액 계산·실제 신고는 연결되어 있지 않습니다. 새로고침하면 학습 표시는 초기화됩니다.</p><div class="dialog-label">향후 로컬 실행 설계</div><div class="runtime-diagram"><span>HTML 화면</span>${icon('arrow')}<span>로컬 OCR·업무 서버</span>${icon('arrow')}<span>llama.cpp<br>Gemma 4 · GGUF</span></div><p>로컬 OCR은 문자 추출을 맡고, llama.cpp는 언어모델 추론을 맡습니다. 계산은 승인 규칙을 구현한 별도 모듈로 처리합니다. llama.cpp는 실행 엔진이며 Gemma 4는 모델입니다. 실제 연결은 호환 빌드·GGUF·채팅 템플릿 확인 후 별도 진행합니다.</p><div class="dialog-label">DESIGN REFERENCES · 구성 원칙 참고</div><div class="reference-links"><a href="https://linear.app/features" target="_blank" rel="noopener noreferrer">Linear · 업무 구조 ↗</a><a href="https://stripe.com/billing" target="_blank" rel="noopener noreferrer">Stripe · 정보 위계 ↗</a><a href="https://brilliant.org/" target="_blank" rel="noopener noreferrer">Brilliant · 학습 진행 ↗</a></div><p>참고 사이트와 제휴 관계가 없으며, 로고·고유 화면을 복제하지 않은 독립 디자인입니다.</p><div class="reference-links"><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md" target="_blank" rel="noopener noreferrer">llama.cpp 공식 문서 ↗</a><a href="https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7709&mi=2310" target="_blank" rel="noopener noreferrer">국세청 계산 흐름 ↗</a></div><div class="dialog-actions"><button class="button secondary" data-action="reset-dialog">학습 표시 초기화</button><button class="button primary" data-action="close">둘러보기 계속 ${icon('arrow')}</button></div></div>`);}
+  function completed(){
+    const m=currentMission();if(!m||!(state.checks[m.id]||[]).every(Boolean)||(state.checks[m.id]||[]).length!==3)return;
+    state.done.add(m.id);render(false);
+    modal(`<div class="complete-dialog"><div class="complete-seal">${icon('check')}</div><div class="eyebrow">MISSION ${num(m.id)} · LEARNING CHECKED</div><h2>${m.id===M.length?'다음은, 나의 실무입니다.':'하나의 단계를 완성했어요.'}</h2><p>${m.output}<br>전체 ${M.length}개 미션 중 ${state.done.size}개 학습 확인</p><div class="dialog-actions"><button class="button secondary" data-action="close">이 단계 다시 보기</button><button class="button primary" data-action="next">${m.id===M.length?'결과물 둘러보기':'다음 미션으로'}${icon('arrow')}</button></div><p style="font-size:9px;margin-top:20px">스스로 표시한 학습 완료입니다. 실제 세무 검토의 승인을 의미하지 않습니다.</p></div>`);
+  }
+  function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');window.clearTimeout(state.toastTimer);state.toastTimer=window.setTimeout(()=>$('#toast').classList.remove('show'),3000);}
+  document.addEventListener('click',e=>{
+    const tab=e.target.closest('[data-tab]');if(tab){updateTab(tab.dataset.tab);return;}
+    const review=e.target.closest('[data-review-item]');if(review){state.reviewItem=Number(review.dataset.reviewItem);render(false);return;}
+    const out=e.target.closest('[data-output]');if(out){const m=M[Number(out.dataset.output)-1];modal(`<div class="dialog-inner"><div class="dialog-top"><h2>${m.output}</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><div id="output-preview-body">${worksheet(m.id)}</div><div class="dialog-actions"><button class="button primary" data-jump="${m.id}">미션에서 살펴보기${icon('arrow')}</button></div></div>`);return;}
+    const jump=e.target.closest('[data-jump]');if(jump){close();location.hash=`mission-${jump.dataset.jump}`;return;}
+    const action=e.target.closest('[data-action]')?.dataset.action;
+    if(action==='about')about();
+    if(action==='residence')residenceModal();
+    if(action==='close')close();
+    if(action==='complete')completed();
+    if(action==='next'){const m=currentMission();close();location.hash=m.id===M.length?'outputs':`mission-${m.id+1}`;}
+    if(action==='menu')document.body.classList.add('menu-open');
+    if(action==='close-menu')document.body.classList.remove('menu-open');
+    if(action==='present'){document.body.classList.toggle('presenting');$('#present-label').textContent=document.body.classList.contains('presenting')?'발표 모드 종료':'발표 모드';toast(document.body.classList.contains('presenting')?'강의 화면을 넓게 보여줍니다.':'기본 화면으로 돌아왔습니다.');}
+    if(action==='reset-dialog'){$('#dialog-content').innerHTML=`<div class="dialog-inner"><div class="dialog-top"><h2>학습 표시를 초기화할까요?</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>이 화면에서 체크한 학습 항목과 완료 표시만 초기화합니다. 실제 파일이나 데이터는 변경되지 않습니다.</p><div class="dialog-actions"><button class="button secondary" data-action="close">유지하기</button><button class="button primary" data-action="reset">초기화</button></div></div>`;}
+    if(action==='reset'){state.done.clear();state.checks={};close();render(false);toast('학습 표시를 초기화했습니다.');}
+  });
+  document.addEventListener('change',e=>{
+    if(!e.target.matches('[data-check]'))return;const m=currentMission();if(!m)return;
+    state.checks[m.id]??=[false,false,false];state.checks[m.id][Number(e.target.dataset.check)]=e.target.checked;
+    $('#check-count').textContent=`${state.checks[m.id].filter(Boolean).length} / 3`;
+    $('#complete-button').disabled=!state.checks[m.id].every(Boolean);
+    if(state.done.has(m.id)&&!state.checks[m.id].every(Boolean)){state.done.delete(m.id);nav();$('#complete-button').innerHTML=`학습 완료 표시${icon('check')}`;}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')document.body.classList.remove('menu-open');
+    if(e.target.matches('[role="tab"]')&&['ArrowLeft','ArrowRight'].includes(e.key)){const tabs=['guide','sample','criteria'];const i=(tabs.indexOf(state.tab)+(e.key==='ArrowRight'?1:2))%3;updateTab(tabs[i]);$(`#tab-${tabs[i]}`).focus();e.preventDefault();}
+  });
+  window.addEventListener('hashchange',()=>{state.tab='guide';render();});
+  render();
+})();
