@@ -7,6 +7,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from .chapters.chapter_02.consultation import list_demo_notes
 from .db import connect, initialize
 
 FRONTEND_ROOT = Path(__file__).resolve().parents[2] / "frontend" / "public"
@@ -29,12 +30,7 @@ class Handler(SimpleHTTPRequestHandler):
                 connection.execute("SELECT 1").fetchone()
             self.send_json({"status": "ok", "database": "ready"})
         elif path == "/api/demo-notes":
-            with connect() as connection:
-                rows = connection.execute(
-                    "SELECT id, chapter, title, content, created_at "
-                    "FROM demo_notes ORDER BY id"
-                ).fetchall()
-            self.send_json({"items": [dict(row) for row in rows]})
+            self.send_json({"items": list_demo_notes()})
         elif path.startswith("/api/"):
             self.send_error(404, "Unknown API endpoint")
         else:

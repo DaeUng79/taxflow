@@ -15,7 +15,7 @@ TAXFLOW_VibeCode/
 │   └── app/
 │       ├── main.py              # 정적 화면과 /api/ 제공
 │       ├── db/                  # SQLite 연결·스키마·가상 예시
-│       └── features/            # 앞으로 만들 Python 기능
+│       └── chapters/            # chapter_01~chapter_05 Python 기능
 ├── data/                        # 임시 DB 파일(README 외 Git 제외)
 ├── docs/chapters/               # 챕터별 작업 기록
 └── AGENTS.md
@@ -38,7 +38,7 @@ python3 -m backend
 
 ## 챕터 개발
 
-[챕터 목록](docs/chapters/README.md)을 기준으로 화면 코드는 `frontend/public/chapters/NN/`, Python 기능 코드는 `backend/app/features/`, 작업 기록은 `docs/chapters/NN.md`에 둡니다. 공통 화면 자산은 `frontend/public/assets/`에서 관리합니다.
+[챕터 목록](docs/chapters/README.md)을 기준으로 화면 코드는 `frontend/public/chapters/NN/`, Python 기능 코드는 `backend/app/chapters/chapter_NN/`, 작업 기록은 `docs/chapters/NN.md`에 둡니다. 공통 화면 자산은 `frontend/public/assets/`, 공통 DB 연결과 스키마는 `backend/app/db/`에서 관리합니다. 현재 챕터 02의 `consultation.py`가 가상 예시 조회를 담당합니다.
 
 메인 화면의 단계 카드가 챕터 전용 페이지로 이동하게 하려면 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 `page`를 지정합니다. 해당 파일이 없으면 기존 `href` 미션으로 이동합니다. 현재 [납세자 상담 샘플](frontend/public/chapters/02/consultation/)에 적용돼 있습니다.
 

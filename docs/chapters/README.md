@@ -1,6 +1,6 @@
 # 챕터 작업 공간
 
-각 챕터의 화면과 코드는 해당 번호 폴더에 저장합니다.
+각 챕터의 화면은 `frontend/public/chapters/NN/`, Python 코드는 `backend/app/chapters/chapter_NN/`에 저장합니다. 공통 DB 코드는 `backend/app/db/`에서 관리합니다.
 
 | 챕터 | 주제 | 미션 |
 | --- | --- | --- |
