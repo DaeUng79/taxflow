@@ -32,3 +32,20 @@ dialog{width:min(640px,calc(100vw - 36px));border:1px solid #ded4e9;border-radiu
 @media(max-width:520px){.overview-page .workflow-map{margin-top:20px;margin-bottom:24px}}
 .submission-actions{margin-top:24px}
 .submission-actions .button{margin-top:0}
+.module-group-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.module-group-heading h3{font-size:13px;font-weight:650;color:#615777}
+.module-group-heading span{font-size:10px;color:#938c9e}
+.module-group + .module-group{margin-top:30px;padding-top:25px;border-top:1px solid var(--line)}
+.mission-grid.setup-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:520px){.module-group-heading{display:block}.module-group-heading span{display:block;margin-top:4px}.mission-grid.setup-grid{grid-template-columns:1fr}}
+.consultation-preview{padding:22px;background:#fff}
+.consultation-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #e9e3ef}
+.consultation-top small{font-size:9px;letter-spacing:.12em;color:#9b89ad}
+.consultation-top h3{font-size:17px;color:#5e4d74;margin-top:5px}
+.consultation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:17px}
+.consultation-field{border:1px solid #e6dfef;border-radius:7px;padding:12px 14px;background:#fcfbfe}
+.consultation-field small{display:block;font-size:10px;color:#95879f;margin-bottom:6px}
+.consultation-field strong{font-size:12px;font-weight:550;color:#675673}
+.consultation-followup{display:flex;gap:12px;align-items:flex-start;margin-top:13px;padding:13px 14px;border-radius:7px;background:#f7f1fc;font-size:11px;color:#766184}
+.consultation-followup b{white-space:nowrap;color:#76559a}
+@media(max-width:520px){.consultation-preview{padding:16px}.consultation-top{display:block}.consultation-top .badge{margin-top:9px}.consultation-grid{grid-template-columns:1fr}.consultation-followup{display:block}.consultation-followup span{display:block;margin-top:5px}}
