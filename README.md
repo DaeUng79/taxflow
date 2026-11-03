@@ -23,22 +23,25 @@ TAXFLOW_VibeCode/
 
 ## 실행
 
-프로젝트 폴더에서 다음 명령 하나로 실행합니다. 첫 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
+프로젝트 폴더에서 처음 실행할 때 가상환경을 만듭니다. 현재는 Python 표준 라이브러리만 사용해 가상환경이 필수는 아니지만, 앞으로 수강자별 패키지 버전을 분리하기 위해 이 방법을 권장합니다. `.venv/`는 Git에서 제외합니다.
 
 ```bash
-python3 -m backend
+python3 -m venv .venv
+source .venv/bin/activate
+python -m backend
 ```
 
-- 메인 화면: [http://127.0.0.1:8765/#overview](http://127.0.0.1:8765/#overview)
-- 납세자 상담 샘플: [http://127.0.0.1:8765/chapters/02/consultation/](http://127.0.0.1:8765/chapters/02/consultation/)
-- 서버·DB 상태: [http://127.0.0.1:8765/api/health](http://127.0.0.1:8765/api/health)
-- 임시 예시 목록: [http://127.0.0.1:8765/api/demo-notes](http://127.0.0.1:8765/api/demo-notes)
+다음 실행부터는 `source .venv/bin/activate`와 `python -m backend`만 입력하면 됩니다. 첫 서버 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
 
-서버 종료는 실행 터미널에서 `Ctrl+C`, 포트 변경은 `PORT=8766 python3 -m backend`입니다. 서버는 127.0.0.1에만 연결됩니다.
+- 메인 화면: [http://127.0.0.1:8765/#overview](http://127.0.0.1:8765/#overview)
+
+서버 종료는 실행 터미널에서 `Ctrl+C`, 포트 변경은 `PORT=8766 python -m backend`입니다. 가상환경을 나갈 때는 `deactivate`를 입력합니다. 서버는 127.0.0.1에만 연결됩니다.
 
 ## 앞으로의 바이브 코딩 규칙
 
-앞으로 기능을 바이브 코딩할 때는 [챕터 목록](docs/chapters/README.md)을 기준으로 아래 구조를 따릅니다. `NN`은 `01`부터 `05`까지의 챕터 번호이며 Python 폴더명은 `chapter_02`처럼 씁니다.
+앞으로 기능을 바이브 코딩할 때는 [챕터 목록](docs/chapters/README.md)을 기준으로 아래 구조를 따릅니다.
+
+`NN`은 `01`부터 `05`까지의 챕터 번호이며 Python 폴더명은 `chapter_02`처럼 씁니다.
 
 1. 사용자 화면과 그 화면 전용 CSS·JavaScript는 `frontend/public/chapters/NN/`에 둡니다.
 2. 해당 챕터의 Python 기능은 `backend/app/chapters/chapter_NN/`에 둡니다. 현재 챕터 02의 `consultation.py`가 가상 예시 조회를 담당합니다.
@@ -48,9 +51,3 @@ python3 -m backend
 6. 변경 후 해당 화면의 로컬 링크, Python·JavaScript 문법, API 응답, `git diff --check`를 확인합니다.
 
 메인 화면의 단계 카드가 챕터 전용 페이지로 이동하게 하려면 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 `page`를 지정합니다. 해당 파일이 없으면 기존 `href` 미션으로 이동합니다. 현재 [납세자 상담 샘플](frontend/public/chapters/02/consultation/)에 적용돼 있습니다.
-
-## 데이터와 Git
-
-`data/`의 SQLite 파일·WAL·백업은 Git에서 제외합니다. 첫 실행 시 넣는 가상 예시는 `backend/app/db/seed.py`로 관리합니다. 기본 SQLite DB는 암호화되지 않습니다. 공개 Git 저장소와 `frontend/public/`에는 실제 납세자 정보나 비공개 증빙을 추가하지 않고, 임시 DB에도 가상자료만 사용합니다. 브라우저에 제공되는 경로는 `frontend/public/`뿐입니다.
-
-원격 저장소는 [DaeUng79/taxflow](https://github.com/DaeUng79/taxflow)입니다. 루트 `index.html`은 기존 GitHub 주소에서 `frontend/public/index.html`로 이동하는 연결 페이지입니다. 교육 자료 원본과 단일 파일 미리보기는 상위 `TEXTFLOW_26.11.28` 폴더에 있습니다.
