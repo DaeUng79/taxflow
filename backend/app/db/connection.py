@@ -4,6 +4,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+from .seed import seed_demo
+
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "taxflow.sqlite3"
 
@@ -26,6 +28,9 @@ def connect() -> sqlite3.Connection:
 
 
 def initialize() -> None:
+    is_new_database = not database_path().exists()
     schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
     with connect() as connection:
         connection.executescript(schema)
+        if is_new_database:
+            seed_demo(connection)

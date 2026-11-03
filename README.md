@@ -10,22 +10,23 @@ TAXFLOW_VibeCode/
 │   ├── index.html
 │   ├── assets/css/ · assets/js/
 │   └── chapters/01/ ... 05/
-├── backend/app/
-│   ├── main.py                  # 정적 화면과 /api/ 제공
-│   ├── db/                      # SQLite 연결·스키마
-│   └── features/                # 앞으로 만들 Python 기능
+├── backend/
+│   ├── __main__.py              # 실행 진입점
+│   └── app/
+│       ├── main.py              # 정적 화면과 /api/ 제공
+│       ├── db/                  # SQLite 연결·스키마·가상 예시
+│       └── features/            # 앞으로 만들 Python 기능
 ├── data/                        # 임시 DB 파일(README 외 Git 제외)
-├── scripts/                     # 서버 실행·예시 데이터 생성
 ├── docs/chapters/               # 챕터별 작업 기록
 └── AGENTS.md
 ```
 
 ## 실행
 
-프로젝트 폴더에서 다음 명령을 실행합니다. 서버 시작 시 `data/taxflow.sqlite3`가 자동 생성됩니다.
+프로젝트 폴더에서 다음 명령 하나로 실행합니다. 첫 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
 
 ```bash
-./scripts/serve.sh
+python3 -m backend
 ```
 
 - 메인 화면: [http://127.0.0.1:8765/#overview](http://127.0.0.1:8765/#overview)
@@ -33,7 +34,7 @@ TAXFLOW_VibeCode/
 - 서버·DB 상태: [http://127.0.0.1:8765/api/health](http://127.0.0.1:8765/api/health)
 - 임시 예시 목록: [http://127.0.0.1:8765/api/demo-notes](http://127.0.0.1:8765/api/demo-notes)
 
-예시 목록을 채우려면 별도 터미널에서 `python3 -m scripts.seed_demo`를 실행합니다. 서버 종료는 실행 터미널에서 `Ctrl+C`, 포트 변경은 `PORT=8766 ./scripts/serve.sh`입니다. 서버는 127.0.0.1에만 연결됩니다.
+서버 종료는 실행 터미널에서 `Ctrl+C`, 포트 변경은 `PORT=8766 python3 -m backend`입니다. 서버는 127.0.0.1에만 연결됩니다.
 
 ## 챕터 개발
 
@@ -43,6 +44,6 @@ TAXFLOW_VibeCode/
 
 ## 데이터와 Git
 
-`data/`의 SQLite 파일·WAL·백업은 Git에서 제외합니다. 재현할 가상 예시는 `scripts/seed_demo.py`로 관리합니다. 기본 SQLite DB는 암호화되지 않으며, 이 공개 저장소와 임시 DB에는 실제 납세자 정보를 넣지 않습니다. 브라우저에 제공되는 경로는 `frontend/public/`뿐입니다.
+`data/`의 SQLite 파일·WAL·백업은 Git에서 제외합니다. 첫 실행 시 넣는 가상 예시는 `backend/app/db/seed.py`로 관리합니다. 기본 SQLite DB는 암호화되지 않으며, 이 공개 저장소와 임시 DB에는 실제 납세자 정보를 넣지 않습니다. 브라우저에 제공되는 경로는 `frontend/public/`뿐입니다.
 
 원격 저장소는 [DaeUng79/taxflow](https://github.com/DaeUng79/taxflow)입니다. 루트 `index.html`은 기존 GitHub 주소에서 `frontend/public/index.html`로 이동하는 연결 페이지입니다. 교육 자료 원본과 단일 파일 미리보기는 상위 `TEXTFLOW_26.11.28` 폴더에 있습니다.
