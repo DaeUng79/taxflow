@@ -18,6 +18,7 @@ TAXFLOW_VibeCode/
 │       └── chapters/            # chapter_01~chapter_05 Python 기능
 ├── data/                        # 임시 DB 파일(README 외 Git 제외)
 ├── docs/chapters/               # 챕터별 작업 기록
+├── requirements.txt             # Python 외부 패키지 목록
 └── README.md                    # 실행·개발 규칙
 ```
 
@@ -28,10 +29,13 @@ TAXFLOW_VibeCode/
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install -r requirements.txt
 python -m backend
 ```
 
-다음 실행부터는 `source .venv/bin/activate`와 `python -m backend`만 입력하면 됩니다. 첫 서버 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
+현재 `requirements.txt`에는 설치할 패키지가 없습니다. 다음 실행부터는 `source .venv/bin/activate`와 `python -m backend`만 입력하면 됩니다.
+
+첫 서버 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
 
 - 메인 화면: [http://127.0.0.1:8765/#overview](http://127.0.0.1:8765/#overview)
 
@@ -49,5 +53,6 @@ python -m backend
 4. 기능의 목적, 실행 방법, 변경 내역은 `docs/chapters/NN.md`에 기록합니다.
 5. 메인 화면을 바꿔야 할 때만 `frontend/public/index.html`과 `frontend/public/assets/`를 수정합니다.
 6. 변경 후 해당 화면의 로컬 링크, Python·JavaScript 문법, API 응답, `git diff --check`를 확인합니다.
+7. 외부 Python 패키지를 추가하면 버전을 지정해 `requirements.txt`에 기록하고, 설치 명령으로 재현되는지 확인합니다.
 
 메인 화면의 단계 카드가 챕터 전용 페이지로 이동하게 하려면 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 `page`를 지정합니다. 해당 파일이 없으면 기존 `href` 미션으로 이동합니다. 현재 [납세자 상담 샘플](frontend/public/chapters/02/consultation/)에 적용돼 있습니다.
