@@ -1,0 +1,73 @@
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;color:#332c3d;background:#f6f4f8;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.topbar{height:72px;padding:0 clamp(20px,4vw,64px);display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid #e8e2ee}
+.brand{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:750;letter-spacing:.04em}.brand small{display:block;font-size:9px;letter-spacing:.12em;color:#9485a6;font-weight:500}.brand-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#7458a5;color:#fff;font-weight:750}
+.topbar nav{display:flex;gap:22px;font-size:12px;color:#756783}.topbar nav a:hover,.back-link:hover{color:#654594;text-decoration:underline}
+.layout{max-width:1240px;margin:0 auto;padding:46px clamp(18px,3vw,32px) 72px}.intro{max-width:850px}.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;color:#8062a7}.intro h1{font-size:clamp(32px,4vw,48px);letter-spacing:-.04em;margin:8px 0 12px}.intro>p{font-size:14px;line-height:1.8;color:#716779;margin:0}
+.workspace{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:22px;align-items:start;margin-top:28px}.form-panel,.summary-panel{background:#fff;border:1px solid #e6dfec;border-radius:16px;box-shadow:0 12px 36px #5543610a}.form-panel{padding:28px}.panel-heading,.panel-heading>div{display:flex;align-items:center}.panel-heading{justify-content:space-between;border-bottom:1px solid #eee9f2;padding-bottom:20px;margin-bottom:22px}.panel-heading>div{gap:10px}.panel-heading h2,.summary-panel h2{font-size:20px;margin:0;letter-spacing:-.02em}.section-number{display:inline-grid;place-items:center;min-width:25px;height:25px;border-radius:7px;background:#eee8f7;color:#74539b;font-size:10px;font-weight:800}.panel-hint{font-size:11px;color:#9a8fa3}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 15px}label{display:block;font-size:12px;font-weight:650;color:#63586b}input:not([type=checkbox]),select,textarea{display:block;width:100%;margin-top:8px;border:1px solid #ddd5e4;border-radius:8px;background:#fff;color:#332c3d;padding:11px 12px;outline:none;font-size:13px}input:focus,select:focus,textarea:focus{border-color:#9476b6;box-shadow:0 0 0 3px #eee6f7}textarea{resize:vertical;line-height:1.6}.full-field{margin-top:20px}.evidence{margin:24px 0 0;padding:18px;border:1px solid #e6dfec;border-radius:10px}.evidence legend{font-weight:700;font-size:13px;padding:0 4px}.evidence legend .section-number{margin-right:6px}.evidence p{font-size:11px;color:#93869b;margin:2px 0 14px}.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.checks label{display:flex;align-items:center;gap:7px;font-weight:500}.checks input{accent-color:#7458a5}.form-actions{display:flex;gap:10px;margin-top:26px}button{border:1px solid #d9cce7;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:700}.primary{background:#7458a5;border-color:#7458a5;color:#fff}.primary:hover{background:#62488f}.secondary{background:#fff;color:#6e5687}.secondary:hover{background:#f5f0fa}
+.record-fields{display:grid;gap:16px;margin-top:24px}.record-fields label{padding-top:15px;border-top:1px solid #f0ecf3}.record-fields textarea{min-height:72px}
+.summary-panel{padding:27px;position:sticky;top:20px}.summary-top{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:10px;letter-spacing:.08em;color:#9a86ad}.status{letter-spacing:0;border:1px solid #e0d2ee;background:#f7f2fb;color:#765a97;border-radius:20px;padding:4px 9px}.summary-panel h2{margin-top:24px}.summary-lead{font-size:12px;line-height:1.75;color:#8c8093;padding-bottom:22px;border-bottom:1px solid #eee9f2}.summary-panel dl{margin:0}.summary-panel dl>div{padding:12px 0;border-bottom:1px solid #f1edf4}.summary-panel dt,.summary-followup small{font-size:10px;color:#9a8fa3}.summary-panel dd{margin:5px 0 0;font-size:12px;line-height:1.65;color:#4e4557;white-space:pre-wrap;overflow-wrap:anywhere}.summary-followup{margin-top:19px;background:#f7f3fa;border-radius:9px;padding:15px}.summary-followup p{margin:5px 0 0;color:#6f5b81;font-size:12px;line-height:1.65;white-space:pre-wrap}.back-link{display:inline-block;margin-top:22px;font-size:12px;font-weight:700;color:#76569a}
+@media(max-width:840px){.workspace{grid-template-columns:1fr}.summary-panel{position:static}}@media(max-width:560px){.topbar{height:64px}.topbar nav{gap:12px;font-size:11px}.layout{padding-top:30px}.form-panel,.summary-panel{padding:19px}.field-grid,.checks{grid-template-columns:1fr}.panel-hint{display:none}.form-actions{flex-direction:column}button{width:100%}}
+
+.question-group{padding:22px 0;border-bottom:1px solid #eee9f2}.question-group h2{font-size:16px;margin:0 0 18px;color:#473653}.required{color:#b54d63}.records{margin-top:18px;display:grid;gap:8px;font-size:12px;color:#756783}.record-button{display:block;width:100%;text-align:left;background:#faf8fc;padding:13px;border:1px solid #e9e1ef}.record-button strong,.record-button span{display:block}.record-button span{font-weight:400;color:#897d91;margin-top:5px}#message{font-size:13px;color:#63458b;min-height:20px}button:disabled{opacity:.6;cursor:wait}
+input:not([type=checkbox]),select{height:44px}select{appearance:none;padding-right:36px;background-image:linear-gradient(45deg,transparent 50%,#756783 50%),linear-gradient(135deg,#756783 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat}
+
+.amount-control{display:flex;align-items:stretch;margin-top:8px}.amount-control input{margin-top:0;border-radius:8px 0 0 8px;appearance:textfield;-moz-appearance:textfield}.amount-control input::-webkit-inner-spin-button,.amount-control input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.amount-buttons{display:flex;flex-direction:column}.amount-buttons button{width:36px;height:22px;padding:0;border-radius:0 8px 0 0;font-size:9px;background:#faf8fc;color:#6e5687}.amount-buttons button+button{border-top:0;border-radius:0 0 8px 0}
+
+@media(min-width:841px){.workspace{grid-template-columns:minmax(260px,1fr) minmax(0,1.65fr)}.workspace>.summary-panel{grid-column:1;grid-row:1}.workspace>.form-panel{grid-column:2;grid-row:1}}
+.form-toolbar{justify-content:flex-end}.form-toolbar .form-actions{margin:0;flex-wrap:wrap}.form-toolbar button{white-space:nowrap}@media(max-width:560px){.form-toolbar .form-actions{flex-direction:row;justify-content:flex-end}.form-toolbar button{width:auto}}
+@media(max-width:840px){.workspace>.summary-panel{grid-row:1}.workspace>.form-panel{grid-row:2}}
+
+@media(min-width:841px){.workspace{grid-template-columns:clamp(260px,28%,320px) minmax(0,1fr);gap:18px}.summary-panel{padding:22px}}
+.record-button strong{overflow-wrap:anywhere}.record-button span{line-height:1.5}
+
+.summary-heading{display:flex;align-items:center;min-height:44px;border-bottom:1px solid #eee9f2;padding-bottom:20px;margin-bottom:22px;box-sizing:content-box}.summary-heading h2{margin:0}.summary-panel{padding:28px}@media(max-width:560px){.summary-panel{padding:19px}}
+
+/* 상담 현황과 입력 영역의 머리글 구분선을 같은 높이에 맞춥니다. */
+.summary-heading,.form-toolbar{height:64px;min-height:0;box-sizing:border-box;display:flex;align-items:flex-start;padding:0 0 20px;margin:0 0 22px;border-bottom:1px solid #eee9f2}.summary-heading h2{line-height:38px}.form-toolbar .form-actions{align-items:center}.summary-panel #search{margin-top:0}.summary-panel,.form-panel{border-color:#e7e1ec;box-shadow:0 10px 32px rgba(54,39,72,.06)}.record-button{background:#faf8fc;transition:background .15s,border-color .15s,transform .15s}.record-button:hover{background:#f2ebf8;border-color:#cdb9df;transform:translateY(-1px)}.record-button strong{font-size:13px;color:#42324e}.record-button span{color:#82758b}.question-group h2{color:#49365c}#message:empty{display:none}@media(max-width:560px){.form-toolbar{height:auto;min-height:64px}.summary-heading{height:64px}}
+
+/* 상담 업무 화면 */
+:root{color:#272438;background:#f5f4f8}
+.topbar{height:68px;background:#fff;border-color:#e9e6ef}
+.brand{font-size:14px;letter-spacing:.07em;color:#302943}.brand-mark{width:34px;height:34px;border-radius:11px;background:#6e55a0;box-shadow:0 4px 10px #6e55a02b}
+.topbar nav a{padding:8px 12px;border-radius:8px;background:#f7f5fa;color:#6e6478;font-weight:650}
+.layout{max-width:1360px;padding-top:38px}.intro h1{font-size:clamp(28px,3.2vw,38px);margin:8px 0 10px}.intro>p{color:#82798b}.eyebrow{font-size:10px;letter-spacing:.12em;color:#836ca0}
+.workspace{margin-top:30px;gap:20px}.form-panel,.summary-panel{border:1px solid #e9e5ee;border-radius:14px;box-shadow:0 6px 24px #3f2c5710}.summary-panel,.form-panel{padding:26px}
+.summary-heading,.form-toolbar{height:58px;padding:0 0 18px;margin:0;border-bottom:1px solid #eeeaf2}.summary-heading h2{font-size:17px;line-height:39px;color:#30273d}.form-toolbar .form-actions{gap:8px}.form-toolbar button{height:39px;padding:0 15px;border-radius:8px;font-size:12px}.form-toolbar .primary{background:#70549e;border-color:#70549e;box-shadow:0 3px 8px #70549e25}.form-toolbar .secondary{border-color:#e1dbe8;color:#695a78}.form-toolbar .secondary:hover{border-color:#cbb9dd;background:#f9f6fc}
+.summary-panel #search{margin-top:20px;background:#f8f7fa;border-color:#ebe7ef}.summary-panel #search:focus{background:#fff}.records{margin-top:14px;gap:8px}.record-button{background:#faf9fc;border-color:#eeeaf2;padding:13px 14px;border-radius:9px}.record-button strong{font-size:13px;font-weight:700}.record-button span{font-size:11px;color:#8f8598;margin-top:6px}
+.question-group{padding:25px 0 27px;border-color:#f0edf3}.question-group h2{font-size:15px;line-height:1.5;color:#40344e;margin:0 0 19px}.question-group h2:before{content:"";display:inline-block;width:4px;height:15px;background:#aa8bc7;border-radius:4px;margin-right:9px;vertical-align:-2px}.field-grid{gap:20px 18px}label{font-size:12px;color:#6c6174;font-weight:650}input:not([type=checkbox]),select,textarea{border-color:#e3dfe8;background-color:#fff;color:#30283a;border-radius:8px}input:not([type=checkbox]):hover,select:hover,textarea:hover{border-color:#cbbfd3}input:focus,select:focus,textarea:focus{border-color:#9275ae;box-shadow:0 0 0 3px #eee7f5}input::placeholder,textarea::placeholder{color:#aaa1b0}textarea{min-height:82px}
+#message:not(:empty){padding:10px 13px;border-radius:8px;background:#f4eef9;color:#624683;line-height:1.5;margin:16px 0 0}
+@media(min-width:841px){.workspace{grid-template-columns:300px minmax(0,1fr)}.summary-panel{top:20px}}
+@media(max-width:840px){.summary-panel,.form-panel{padding:24px}.summary-panel{position:static}.records{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.layout{padding-top:28px}.summary-panel,.form-panel{padding:19px}.records{grid-template-columns:1fr}.form-toolbar{height:auto;min-height:58px}.form-toolbar .form-actions{gap:6px}.form-toolbar button{padding:0 10px;font-size:11px}.field-grid{gap:16px}}
+.record-card{position:relative;min-width:0}.record-card .record-button{padding-right:58px;height:100%}.record-delete{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:auto;padding:6px 8px;font-size:11px;color:#9b5c67;background:#fff;border:1px solid #eadde0;border-radius:6px}.record-delete:hover{background:#fff3f4;border-color:#d5aab0}.record-delete:focus-visible{outline:2px solid #925e9f;outline-offset:2px}
+
+/* 넓은 화면에서는 한 줄에 여러 항목을 배치합니다. */
+@media(min-width:841px){.workspace{grid-template-columns:350px minmax(0,1fr)}}
+@media(min-width:1100px){.field-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.field-grid label:has(textarea){grid-column:span 2}}
+@media(min-width:841px) and (max-width:1099px){.workspace{grid-template-columns:320px minmax(0,1fr)}}
+.record-card .record-button{padding-right:54px}.record-button span{white-space:nowrap;letter-spacing:-.025em;font-size:10px}.record-button strong{line-height:1.4}
+@media(min-width:561px) and (max-width:700px){.records{grid-template-columns:1fr}}
+@media(max-width:400px){.record-button span{white-space:normal}}
+
+@media(min-width:1100px){.taxpayer-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:561px){.household-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"homes household" "rights details"}.household-grid label:has([name=otherHomes]){grid-area:homes}.household-grid label:has([name=otherRights]){grid-area:rights}.household-grid label:has([name=household]){grid-area:household}.household-grid label:has([name=householdDetails]){grid-area:details}}
+
+@media(min-width:561px){.expense-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"other details" "expenses details"}.expense-grid label:has([name=otherTransfers]){grid-area:other}.expense-grid label:has([name=expenses]){grid-area:expenses}.expense-grid label:has([name=expenseDetails]){grid-area:details}}
+
+@media(min-width:561px){.expense-grid label:has([name=expenseDetails]){display:flex;flex-direction:column}.expense-grid textarea[name=expenseDetails]{flex:1;min-height:0}}
+
+@media(min-width:1100px){.evidence-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.evidence-grid label:has([name=notes]){grid-column:1 / -1}}
+@media(min-width:561px) and (max-width:1099px){.evidence-grid label:has([name=notes]){grid-column:1 / -1}}
+
+/* 상담 안내를 스크롤 중에도 보여 줍니다. */
+.intro{position:sticky;top:0;z-index:10;max-width:none;background:#f5f4f8;padding:16px 0 18px;margin:-16px 0 -18px;box-shadow:0 10px 12px -12px rgba(54,39,72,.18)}
+@media(min-width:841px){.summary-panel{top:170px}}
+
+/* 스크롤 시 안내 영역을 간결하게 유지합니다. */
+.intro{isolation:isolate;box-shadow:none;transition:padding .18s ease}.intro::before{content:"";position:absolute;z-index:-1;inset:0 -100vw;background:rgba(248,247,250,.97);border-bottom:1px solid #e9e5ee;box-shadow:0 5px 18px rgba(46,34,61,.05)}.intro h1{transition:font-size .18s ease,margin .18s ease}.intro>p{transition:font-size .18s ease}.is-scrolled .intro{padding:10px 0 12px}.is-scrolled .intro h1{font-size:24px;margin:3px 0 4px}.is-scrolled .intro>p{font-size:12px;line-height:1.5}@media(min-width:841px){.is-scrolled .summary-panel{top:136px}}@media(max-width:560px){.is-scrolled .intro h1{font-size:21px}.is-scrolled .intro>p{font-size:11px}}
+
+/* 페이지 전체를 하나의 스크롤로 이동합니다. */
+html{scroll-padding-top:120px}.form-panel :focus{scroll-margin-top:120px}
+

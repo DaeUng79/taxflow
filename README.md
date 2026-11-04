@@ -1,58 +1,131 @@
 # TAXFLOW VibeCode
 
-프론트엔드 화면과 Python 백엔드, 교육용 SQLite 임시 데이터를 한 프로젝트에서 관리합니다. Python 표준 라이브러리만 사용하므로 별도 패키지 설치 없이 로컬에서 실행할 수 있습니다.
+양도소득세 업무 흐름을 살펴보고, 납세자 상담 내용을 입력·관리하는 로컬 웹 프로젝트입니다.
 
-## 폴더 구성
+화면, Python 서버, SQLite 데이터베이스를 한 폴더에서 관리합니다.
 
-```text
-TAXFLOW_VibeCode/
-├── frontend/public/             # 브라우저에 제공되는 정적 파일
-│   ├── index.html
-│   ├── assets/css/ · assets/js/
-│   └── chapters/01/ ... 05/
-├── backend/
-│   ├── __main__.py              # 실행 진입점
-│   └── app/
-│       ├── main.py              # 정적 화면과 /api/ 제공
-│       ├── db/                  # SQLite 연결·스키마·가상 예시
-│       └── chapters/            # chapter_01~chapter_05 Python 기능
-├── data/                        # 임시 DB 파일(README 외 Git 제외)
-├── docs/chapters/               # 챕터별 작업 기록
-├── requirements.txt             # Python 외부 패키지 목록
-└── README.md                    # 실행·개발 규칙
+## 처음 실행하기 (macOS)
+
+터미널 앱을 열고 다음 순서대로 입력합니다. Git과 Python 3가 설치되어 있는지 먼저 확인하세요. 두 명령 모두 버전 번호가 표시되어야 합니다.
+
+```bash
+git --version
+python3 --version
 ```
 
-## 실행
+원하는 작업 폴더로 이동한 뒤 프로젝트를 내려받습니다. `git clone`은 `taxflow` 폴더를 새로 만듭니다. 이미 내려받았다면 다시 복제하지 말고 기존 폴더에서 다음 단계로 진행하세요.
 
-프로젝트 폴더에서 처음 실행할 때 가상환경을 만듭니다. 현재는 Python 표준 라이브러리만 사용해 가상환경이 필수는 아니지만, 앞으로 수강자별 패키지 버전을 분리하기 위해 이 방법을 권장합니다. `.venv/`는 Git에서 제외합니다.
+```bash
+git clone https://github.com/DaeUng79/taxflow.git
+cd taxflow
+```
+
+프로젝트 폴더(`README.md`와 `backend/`가 있는 위치)에서 가상환경을 만들고 활성화합니다. `.venv` 생성은 처음 한 번만 필요하며, 활성화되면 터미널 줄 앞에 `(.venv)`가 표시됩니다.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
+```
+
+현재 `requirements.txt`에는 설치할 외부 패키지가 없습니다. 다음 명령으로 서버를 켭니다.
+
+```bash
 python -m backend
 ```
 
-현재 `requirements.txt`에는 설치할 패키지가 없습니다. 다음 실행부터는 `source .venv/bin/activate`와 `python -m backend`만 입력하면 됩니다.
+터미널에 `TAXFLOW http://127.0.0.1:8765/`가 표시되면 서버가 실행 중입니다. 해당 터미널은 열어 두고 브라우저에서 [첫 번째 미션](http://127.0.0.1:8765/index.html#mission-1)을 엽니다. 상담 기록 저장 화면은 메인 화면의 **납세자 상담**에서 열 수 있습니다.
 
-첫 서버 실행 시 `data/taxflow.sqlite3`와 가상 예시 한 건이 자동 생성됩니다.
+## 종료하고 다시 실행하기
 
-- 메인 화면: [http://127.0.0.1:8765/#overview](http://127.0.0.1:8765/#overview)
+서버를 켠 터미널에서 `Ctrl+C`를 누르면 서버가 종료됩니다. 가상환경까지 종료하려면 `deactivate`를 입력하세요. 다음에 다시 실행할 때는 프로젝트 폴더로 이동한 뒤 가상환경을 활성화하고 서버를 켭니다. 이미 만든 `.venv`를 다시 만들 필요는 없습니다.
 
-서버 종료는 실행 터미널에서 `Ctrl+C`, 포트 변경은 `PORT=8766 python -m backend`입니다. 가상환경을 나갈 때는 `deactivate`를 입력합니다. 서버는 127.0.0.1에만 연결됩니다.
+```bash
+cd taxflow
+source .venv/bin/activate
+python -m backend
+```
 
-## 앞으로의 바이브 코딩 규칙
+`cd taxflow`는 `taxflow`의 **상위 폴더**에 있을 때 쓰는 명령입니다. 다른 위치에 있다면 `cd` 뒤에 자신의 프로젝트 경로를 적으세요.
 
-앞으로 기능을 바이브 코딩할 때는 [챕터 목록](docs/chapters/README.md)을 기준으로 아래 구조를 따릅니다.
+포트 8765가 이미 사용 중이라는 오류가 나오면 기존 서버를 실행한 터미널에서 `Ctrl+C`를 누르세요. 다른 포트로 실행하려면 `PORT=8766 python -m backend`를 입력하고 브라우저 주소도 `http://127.0.0.1:8766/`으로 바꿉니다. 화면이 열리지 않으면 터미널에 오류가 없는지, 가상환경이 활성화됐는지, `backend/` 폴더가 있는 위치에서 실행했는지 확인하세요.
 
-`NN`은 `01`부터 `05`까지의 챕터 번호이며 Python 폴더명은 `chapter_02`처럼 씁니다.
+Windows PowerShell에서는 Git과 Python 3를 확인한 뒤 다음 명령을 사용합니다.
 
-1. 사용자 화면과 그 화면 전용 CSS·JavaScript는 `frontend/public/chapters/NN/`에 둡니다.
-2. 해당 챕터의 Python 기능은 `backend/app/chapters/chapter_NN/`에 둡니다. 현재 챕터 02의 `consultation.py`가 가상 예시 조회를 담당합니다.
-3. DB 연결·스키마는 `backend/app/db/`, 여러 챕터가 함께 쓰는 기능은 `backend/app/`의 공통 모듈에서 관리합니다. 챕터마다 DB 파일을 따로 만들지 않습니다.
-4. 기능의 목적, 실행 방법, 변경 내역은 `docs/chapters/NN.md`에 기록합니다.
-5. 메인 화면을 바꿔야 할 때만 `frontend/public/index.html`과 `frontend/public/assets/`를 수정합니다.
-6. 변경 후 해당 화면의 로컬 링크, Python·JavaScript 문법, API 응답, `git diff --check`를 확인합니다.
-7. 외부 Python 패키지를 추가하면 버전을 지정해 `requirements.txt`에 기록하고, 설치 명령으로 재현되는지 확인합니다.
+```powershell
+git clone https://github.com/DaeUng79/taxflow.git
+cd taxflow
+py -3 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m backend
+```
 
-메인 화면의 단계 카드가 챕터 전용 페이지로 이동하게 하려면 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 `page`를 지정합니다. 해당 파일이 없으면 기존 `href` 미션으로 이동합니다. 현재 [납세자 상담 샘플](frontend/public/chapters/02/consultation/)에 적용돼 있습니다.
+PowerShell이 활성화 스크립트 실행을 막으면 현재 창에서 `Set-ExecutionPolicy -Scope Process RemoteSigned`를 실행한 뒤 다시 활성화하세요. 서버 종료는 `Ctrl+C`, 가상환경 종료는 `deactivate`입니다.
+
+## 현재 사용할 수 있는 기능
+
+납세자 상담 화면에서는 이름과 주소를 입력하고, 날짜·선택 항목·금액을 이용해 주택 거래와 거주, 가족, 비용, 증빙 상태를 기록합니다. 금액은 천 단위 쉼표로 표시되며 화살표로 조정할 수 있습니다.
+
+- **가상 데이터 입력**: 연습용 내용을 화면에 채웁니다. 저장 버튼을 누르기 전까지는 등록되지 않습니다.
+- **새 상담 / 상담 저장**: 새 기록을 작성하거나 열린 기록을 수정해 저장합니다. 저장할 때 컴퓨터의 날짜와 시간이 상담일로 기록되며, 수정 후 저장할 때 갱신됩니다.
+- **상담 현황**: 이름으로 검색하고 기록을 열 수 있습니다. 삭제 버튼을 누르면 확인창이 표시됩니다. 삭제한 기록은 복구할 수 없습니다.
+
+메인 화면의 나머지 미션은 안내와 화면 예시를 제공합니다. OCR, AI 분석, 세액 계산, 신고서 작성·제출, 증빙 파일 첨부 기능은 현재 상담 화면에 연결되어 있지 않습니다.
+
+## 데이터 저장
+
+서버를 처음 실행하면 기본 위치인 `data/taxflow.sqlite3`가 생성됩니다. 기존 파일이 있으면 그대로 사용합니다. `TAXFLOW_DB_PATH` 환경변수로 다른 위치를 지정할 수 있습니다.
+
+- `consultations` 테이블: 상담 목록에 쓰는 이름·상담 시각, 입력 내용(JSON), 생성·수정 시각을 저장합니다.
+- `demo_notes` 테이블: 별도의 가상 예시 메모를 저장합니다. 첫 데이터베이스 생성 시 예시가 추가됩니다.
+- 데이터베이스 파일과 `data/`의 백업 파일은 Git에서 제외됩니다. 폴더 이름을 변경해도 기존 DB는 이동하거나 삭제되지 않습니다.
+
+**실제 개인정보를 저장하기 전에** 접근 권한, 저장 파일 암호화, 백업과 삭제 정책을 마련해야 합니다. 현재 서버에는 로그인과 사용자별 접근 권한이 없고 기본 SQLite 파일은 암호화되지 않습니다.
+
+## 폴더 구성
+
+```text
+TAXFLOW_VibeCode/
+├── frontend/public/
+│   ├── index.html                         # 메인 화면
+│   ├── assets/css/ · assets/js/           # 메인 화면 스타일과 미션 내용
+│   └── chapters/
+│       ├── 01_consultation/               # 납세자 상담
+│       │   └── consultation/              # 상담 화면과 전용 코드
+│       ├── 02_intake/                     # 자료 접수·구조화 시작 화면
+│       ├── 03_evidence/                   # 충돌·근거 확인 시작 화면
+│       ├── 04_review/                     # 검토·신고서 대조 시작 화면
+│       └── 05_report/                     # 리포트·실무 적용 시작 화면
+├── backend/
+│   ├── __main__.py                        # 실행 진입점
+│   └── app/
+│       ├── main.py                        # 화면 제공과 상담 API
+│       ├── db/                            # SQLite 연결·스키마·가상 메모
+│       └── chapters/                      # 챕터별 Python 모듈
+├── data/                                  # 로컬 DB 보관 위치
+├── requirements.txt                       # 외부 Python 패키지 목록
+└── README.md
+```
+
+`02_intake`부터 `05_report`까지는 현재 챕터 시작 화면입니다. 백엔드 폴더는 `chapter_01`처럼 번호만 사용하는 기존 이름을 유지하며, `chapter_02/consultation.py`는 가상 메모 조회에 사용됩니다. 실제 상담 기록 API는 현재 `backend/app/main.py`에 있습니다.
+
+## 상담 API
+
+| 기능           | 요청                               |
+| -------------- | ---------------------------------- |
+| 상담 목록      | `GET /api/consultations`         |
+| 상담 상세      | `GET /api/consultations/{id}`    |
+| 신규 상담 저장 | `POST /api/consultations`        |
+| 상담 수정      | `PUT /api/consultations/{id}`    |
+| 상담 삭제      | `DELETE /api/consultations/{id}` |
+| 서버 상태      | `GET /api/health`                |
+
+상담 생성·수정은 JSON을 사용하며 납세자 이름과 상담 시각을 확인합니다. 이름 검색은 화면에서 불러온 목록을 기준으로 동작합니다.
+
+## 작업할 때
+
+1. 화면과 전용 스타일·스크립트는 해당 `frontend/public/chapters/번호_역할/` 폴더에 둡니다.
+2. DB 연결과 스키마는 `backend/app/db/`에서 관리하고, 사용자에게 필요한 안내는 해당 미션 화면에 반영합니다.
+3. 메인 화면에서 상담 화면으로 가는 경로는 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 지정합니다. 해당 페이지가 없으면 미션 안내로 이동합니다.
+4. 변경 후 화면과 링크, Python·JavaScript 문법, 필요한 API 응답을 확인합니다. 새 Python 패키지가 필요하면 버전을 `requirements.txt`에 기록합니다.

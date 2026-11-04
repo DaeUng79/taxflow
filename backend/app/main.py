@@ -23,12 +23,92 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def write_consultation(self, record_id=None):
+        origin = self.headers.get("Origin")
+        host = self.headers.get("Host", "")
+        if host not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}") or (origin and origin not in (f"http://127.0.0.1:{self.server.server_port}", f"http://localhost:{self.server.server_port}")) or self.headers.get_content_type() != "application/json":
+            self.send_error(403)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > 65536:
+                raise ValueError()
+            data = json.loads(self.rfile.read(length))
+            if not isinstance(data, dict) or not isinstance(data.get("taxpayerName"), str) or not data["taxpayerName"].strip() or not isinstance(data.get("consultedAt"), str) or not data["consultedAt"]:
+                raise ValueError()
+            if any(not isinstance(k, str) or not isinstance(v, str) for k, v in data.items()):
+                raise ValueError()
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+            self.send_error(400, "Invalid consultation")
+            return
+        with connect() as connection:
+            if record_id is None:
+                cursor = connection.execute("INSERT INTO consultations (taxpayer_name, consulted_at, data) VALUES (?, ?, ?)", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False)))
+                record_id = cursor.lastrowid
+            else:
+                cursor = connection.execute("UPDATE consultations SET taxpayer_name=?, consulted_at=?, data=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False), record_id))
+                if not cursor.rowcount:
+                    self.send_error(404)
+                    return
+        self.send_json({"id": record_id})
+
+    def do_POST(self):
+        if self.path == "/api/consultations":
+            self.write_consultation()
+        else:
+            self.send_error(404)
+
+    def do_PUT(self):
+        path = urlsplit(self.path).path
+        parts = path.strip("/").split("/")
+        if len(parts) == 3 and parts[:2] == ["api", "consultations"] and parts[2].isdigit():
+            self.write_consultation(int(parts[2]))
+        else:
+            self.send_error(404)
+
+    def do_DELETE(self):
+        host = self.headers.get("Host", "")
+        origin = self.headers.get("Origin")
+        allowed_hosts = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
+        if host not in allowed_hosts or (origin and origin not in tuple(f"http://{value}" for value in allowed_hosts)) or self.headers.get_content_type() != "application/json":
+            self.send_error(403)
+            return
+        parts = urlsplit(self.path).path.strip("/").split("/")
+        if len(parts) != 3 or parts[:2] != ["api", "consultations"] or not parts[2].isdigit():
+            self.send_error(404)
+            return
+        with connect() as connection:
+            cursor = connection.execute("DELETE FROM consultations WHERE id=?", (int(parts[2]),))
+            if not cursor.rowcount:
+                self.send_error(404)
+                return
+        self.send_json({"deleted": True})
+
     def do_GET(self) -> None:
         path = urlsplit(self.path).path
+        if path.startswith("/api/") and self.headers.get("Host", "") not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"):
+            self.send_error(403)
+            return
         if path == "/api/health":
             with connect() as connection:
                 connection.execute("SELECT 1").fetchone()
             self.send_json({"status": "ok", "database": "ready"})
+        elif path == "/api/consultations":
+            with connect() as connection:
+                rows = connection.execute("SELECT id, taxpayer_name, consulted_at, updated_at, data FROM consultations ORDER BY updated_at DESC, id DESC").fetchall()
+            items = []
+            for row in rows:
+                item = dict(row)
+                item["birth_date"] = json.loads(item.pop("data")).get("birthDate", "")
+                items.append(item)
+            self.send_json({"items": items})
+        elif path.startswith("/api/consultations/") and path.rsplit("/", 1)[-1].isdigit():
+            with connect() as connection:
+                row = connection.execute("SELECT id, data FROM consultations WHERE id=?", (int(path.rsplit("/", 1)[-1]),)).fetchone()
+            if row is None:
+                self.send_error(404)
+            else:
+                self.send_json({"id": row["id"], "data": json.loads(row["data"])})
         elif path == "/api/demo-notes":
             self.send_json({"items": list_demo_notes()})
         elif path.startswith("/api/"):
