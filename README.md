@@ -91,24 +91,26 @@ TAXFLOW_VibeCode/
 │   ├── index.html                         # 메인 화면
 │   ├── assets/css/ · assets/js/           # 메인 화면 스타일과 미션 내용
 │   └── chapters/
-│       ├── 01_consultation/               # 납세자 상담
+│       ├── ch01_consultation/             # 납세자 상담
 │       │   └── consultation/              # 상담 화면과 전용 코드
-│       ├── 02_intake/                     # 자료 접수·구조화 시작 화면
-│       ├── 03_evidence/                   # 충돌·근거 확인 시작 화면
-│       ├── 04_review/                     # 검토·신고서 대조 시작 화면
-│       └── 05_report/                     # 리포트·실무 적용 시작 화면
+│       ├── ch02_intake/                   # 자료 접수·구조화 시작 화면
+│       ├── ch03_evidence/                 # 충돌·근거 확인 시작 화면
+│       ├── ch04_review/                   # 검토·신고서 대조 시작 화면
+│       └── ch05_report/                   # 리포트·실무 적용 시작 화면
 ├── backend/
 │   ├── __main__.py                        # 실행 진입점
 │   └── app/
 │       ├── main.py                        # 화면 제공과 상담 API
-│       ├── db/                            # SQLite 연결·스키마·가상 메모
-│       └── chapters/                      # 챕터별 Python 모듈
+│       ├── db/                            # SQLite 연결·스키마·가상 메모 조회
+│       └── chapters/                      # 프런트엔드와 같은 ch01~ch05 폴더
 ├── data/                                  # 로컬 DB 보관 위치
 ├── requirements.txt                       # 외부 Python 패키지 목록
 └── README.md
 ```
 
-`02_intake`부터 `05_report`까지는 현재 챕터 시작 화면입니다. 백엔드 폴더는 `chapter_01`처럼 번호만 사용하는 기존 이름을 유지하며, `chapter_02/consultation.py`는 가상 메모 조회에 사용됩니다. 실제 상담 기록 API는 현재 `backend/app/main.py`에 있습니다.
+`ch02_intake`부터 `ch05_report`까지는 현재 챕터 시작 화면입니다. 백엔드의 `chapters/` 하위 폴더 이름도 프런트엔드와 일치하며, `ch` 접두사를 붙여 Python 모듈로 import할 수 있습니다. 가상 메모 조회 코드는 `db/demo_notes.py`에, 실제 상담 기록 API는 현재 `backend/app/main.py`에 있습니다.
+
+이전 `/chapters/01_consultation/`부터 `/chapters/05_report/`까지의 주소는 새 `ch01_`~`ch05_` 주소로 이동합니다. Python 서버를 실행 중이었다면 재시작해야 이전 주소의 자동 이동이 적용됩니다.
 
 ## 상담 API
 
@@ -125,7 +127,7 @@ TAXFLOW_VibeCode/
 
 ## 작업할 때
 
-1. 화면과 전용 스타일·스크립트는 해당 `frontend/public/chapters/번호_역할/` 폴더에 둡니다.
+1. 화면과 전용 스타일·스크립트는 해당 `frontend/public/chapters/ch번호_역할/` 폴더에 둡니다.
 2. DB 연결과 스키마는 `backend/app/db/`에서 관리하고, 사용자에게 필요한 안내는 해당 미션 화면에 반영합니다.
 3. 메인 화면에서 상담 화면으로 가는 경로는 `frontend/public/assets/js/missions.js`의 `workflow` 항목에 지정합니다. 해당 페이지가 없으면 미션 안내로 이동합니다.
 4. 변경 후 화면과 링크, Python·JavaScript 문법, 필요한 API 응답을 확인합니다. 새 Python 패키지가 필요하면 버전을 `requirements.txt`에 기록합니다.

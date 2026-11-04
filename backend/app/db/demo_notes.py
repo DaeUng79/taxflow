@@ -1,6 +1,6 @@
-"""Read-only demo consultation content for Chapter 02."""
+"""Read-only example notes stored in the local database."""
 
-from ...db import connect
+from .connection import connect
 
 
 def list_demo_notes() -> list[dict]:

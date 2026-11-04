@@ -10,7 +10,7 @@ window.COURSE = {
       "sub": "사실관계 청취",
       "role": "사람이 듣고 확인",
       "href": "mission-3",
-      "page": "chapters/01_consultation/consultation/index.html",
+      "page": "chapters/ch01_consultation/consultation/index.html",
       "icon": "briefcase"
     },
     {

@@ -1,1 +1,1 @@
-"""Chapter-specific backend features for the TAXFLOW course."""
+"""Chapter folders named to match frontend/public/chapters."""

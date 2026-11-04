@@ -7,10 +7,17 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from .chapters.chapter_02.consultation import list_demo_notes
 from .db import connect, initialize
+from .db.demo_notes import list_demo_notes
 
 FRONTEND_ROOT = Path(__file__).resolve().parents[2] / "frontend" / "public"
+OLD_CHAPTER_PATHS = {
+    "01_consultation": "ch01_consultation",
+    "02_intake": "ch02_intake",
+    "03_evidence": "ch03_evidence",
+    "04_review": "ch04_review",
+    "05_report": "ch05_report",
+}
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -85,7 +92,20 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json({"deleted": True})
 
     def do_GET(self) -> None:
-        path = urlsplit(self.path).path
+        requested = urlsplit(self.path)
+        path = requested.path
+        for old_name, new_name in OLD_CHAPTER_PATHS.items():
+            old_prefix = f"/chapters/{old_name}"
+            if path == old_prefix or path.startswith(old_prefix + "/"):
+                location = f"/chapters/{new_name}{path[len(old_prefix):]}"
+                if requested.query:
+                    location += f"?{requested.query}"
+                self.send_response(302)
+                self.send_header("Location", location)
+                self.send_header("Content-Length", "0")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                return
         if path.startswith("/api/") and self.headers.get("Host", "") not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"):
             self.send_error(403)
             return
