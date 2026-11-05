@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>양도소득세 관련 문서 파싱 안내 · TAXFLOW</title>
+  <link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<main>
+  <a class="back" href="../../index.html#overview">← 전체 화면으로</a>
+  <header class="hero">
+    <div><p class="eyebrow">TAXFLOW / 자료 수취</p><h1>양도소득세 관련<br>문서 파싱 안내</h1><p>서류를 하나씩 읽고 필요한 내용을 다시 옮겨 적는 대신, AI가 초안을 정리하도록 도와줍니다. 담당자가 원본을 확인하고 필요한 내용을 저장합니다.</p><a class="primary" href="#example">매매계약서 예시 보기 ↓</a></div>
+    <div class="hero-note"><span>DOCUMENT → DATA</span><strong>원본은 그대로,<br>필요한 내용은 정리해서.</strong><p>PDF 등록부터 확인과 JSON 저장까지</p></div>
+  </header>
+  <section class="section"><div class="section-heading"><span>01 / 이해하기</span><h2>문서 파싱이란?</h2><p>계약서와 같은 문서에서 필요한 내용을 찾아 항목별로 정리하는 과정입니다.</p></div>
+    <div class="steps"><article><b>01</b><h3>문서 등록</h3><p>스캔한 PDF를 등록하면 페이지를 이미지로 바꿉니다.</p></article><article><b>02</b><h3>필요한 내용 추출</h3><p>AI가 지정된 항목을 읽어 컴퓨터가 활용할 수 있는 형태로 정리합니다.</p></article><article><b>03</b><h3>대조하고 저장</h3><p>원본과 결과를 비교해 수정하고 JSON 파일로 저장합니다.</p></article></div>
+    <div class="note"><strong>JSON이란?</strong> 항목 이름과 값을 함께 담는 파일 형식입니다. 저장한 내용을 다른 프로그램에서 읽거나, 추후 저장 기능을 연결할 때 활용할 수 있습니다.</div>
+  </section>
+  <section class="section"><div class="section-heading"><span>02 / 활용하기</span><h2>다른 문서에도 같은 방식을 적용할 수 있어요</h2><p>문서 종류마다 어떤 항목이 필요한지 정하면 그 항목을 추출하도록 확장할 수 있습니다.</p></div>
+    <div class="documents"><article><div><h3>부동산 매매계약서</h3><span class="live">현재 사용 가능</span></div><p>부동산의 표시, 매매대금과 지급, 매도인·매수인 정보</p></article><article><div><h3>주민등록초본</h3><span>확장 예시</span></div><p>주소 변동 내역, 전입일 등 확인에 필요한 항목</p></article><article><div><h3>영수증·증빙서류</h3><span>확장 예시</span></div><p>지출일, 금액, 지급처 등 서류별로 필요한 항목</p></article></div>
+    <p class="section-note">현재 예시는 <b>매매계약서 전용</b>입니다. 초본이나 영수증은 곧바로 정확히 처리되는 기능이 아니며, 문서별 추출 항목과 화면·검증 규칙을 추가로 개발해야 합니다. 예시 항목은 실제 서류와 업무에 맞게 정해야 합니다.</p>
+  </section>
+  <section class="section"><div class="section-heading"><span>03 / 실무에 적용하기</span><h2>사용할 때는 이렇게 확인하세요</h2></div>
+    <ol class="practical"><li><b>찾을 항목 정하기</b><span>문서 종류와 활용 목적에 맞춰 어떤 내용을 추출할지 먼저 정합니다.</span></li><li><b>원본과 비교하기</b><span>AI가 읽은 숫자·날짜·이름과 공동명의자 정보를 원본에서 확인합니다. 모르는 값은 추측해 채우지 않습니다.</span></li><li><b>결과 저장과 활용</b><span>필요한 내용을 수정해 JSON으로 저장합니다. 자동으로 데이터베이스에 저장하는 기능은 별도 연결이 필요합니다.</span></li></ol>
+    <p class="section-note">필요한 항목만 요청하면 AI가 생성할 내용이 줄어 처리 시간이 짧아질 수 있습니다. 현재 예시는 페이지 전체 이미지를 분석하며, 문서 상태와 모델에 따라 시간과 정확도는 달라집니다.</p>
+  </section>
+  <section class="section example" id="example"><div class="example-heading"><div><span>04 / 직접 사용해 보기</span><h2>매매계약서 파싱 화면</h2><p>현재 사용할 수 있는 예시입니다. 왼쪽 원본과 오른쪽 결과를 나란히 확인하고 저장할 수 있습니다.</p></div><a class="primary" href="index.html">분석 화면 크게 열기 ↗</a></div>
+    <div class="example-notice">사용 전 선택한 AI 모델 서버가 실행 중이어야 합니다. <a href="../../index.html#mission-2">AI 실행 방법 보기 →</a></div>
+    <iframe src="index.html" title="매매계약서 파싱 예시 화면" loading="lazy"></iframe>
+  </section>
+</main>
+</body>
+</html>

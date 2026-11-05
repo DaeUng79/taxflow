@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 from .db import connect, initialize
 from .db.demo_notes import list_demo_notes
+from .chapters.ch02_intake import api as intake_api
 
 FRONTEND_ROOT = Path(__file__).resolve().parents[2] / "frontend" / "public"
 OLD_CHAPTER_PATHS = {
@@ -60,10 +61,52 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json({"id": record_id})
 
     def do_POST(self):
-        if self.path == "/api/consultations":
+        if self.path in ("/api/intake/render", "/api/intake/parse"):
+            self.intake_request()
+        elif self.path == "/api/consultations":
             self.write_consultation()
         else:
             self.send_error(404)
+
+    def intake_request(self):
+        host = self.headers.get("Host", "")
+        origin = self.headers.get("Origin")
+        allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
+        if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)):
+            self.send_error(403)
+            return
+        render = self.path.endswith("/render")
+        expected = "application/pdf" if render else "application/json"
+        if self.headers.get_content_type() != expected:
+            self.send_error(415)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            limit = intake_api.MAX_PDF if render else intake_api.MAX_IMAGE * 4 // 3 + 1024
+            if length <= 0 or length > limit:
+                raise ValueError("요청 크기가 허용 범위를 벗어났습니다.")
+            data = self.rfile.read(length)
+            if render:
+                result = intake_api.render_pdf(data)
+            else:
+                payload = json.loads(data)
+                if not isinstance(payload, dict):
+                    raise ValueError("요청 형식이 올바르지 않습니다.")
+                result = intake_api.parse_image(payload.get("image"), payload.get("model", "8b"))
+            self.send_json(result)
+        except (ValueError, UnicodeDecodeError) as exc:
+            self.send_json_error(str(exc), 400)
+        except RuntimeError as exc:
+            self.send_json_error(str(exc), 502)
+
+    def send_json_error(self, message, status):
+        body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_PUT(self):
         path = urlsplit(self.path).path

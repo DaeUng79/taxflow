@@ -28,7 +28,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-현재 `requirements.txt`에는 설치할 외부 패키지가 없습니다. 다음 명령으로 서버를 켭니다.
+의존성 설치가 끝나면 다음 명령으로 서버를 켭니다.
 
 ```bash
 python -m backend
@@ -71,7 +71,7 @@ PowerShell이 활성화 스크립트 실행을 막으면 현재 창에서 `Set-E
 - **새 상담 / 상담 저장**: 새 기록을 작성하거나 열린 기록을 수정해 저장합니다. 저장할 때 컴퓨터의 날짜와 시간이 상담일로 기록되며, 수정 후 저장할 때 갱신됩니다.
 - **상담 현황**: 이름으로 검색하고 기록을 열 수 있습니다. 삭제 버튼을 누르면 확인창이 표시됩니다. 삭제한 기록은 복구할 수 없습니다.
 
-메인 화면의 나머지 미션은 안내와 화면 예시를 제공합니다. OCR, AI 분석, 세액 계산, 신고서 작성·제출, 증빙 파일 첨부 기능은 현재 상담 화면에 연결되어 있지 않습니다.
+챕터 02에서는 로컬 llama.cpp 비전 모델을 이용해 스캔 계약서를 페이지별로 분석할 수 있습니다. 실행 및 모델 준비 방법은 [계약서 파싱 안내](backend/app/chapters/ch02_intake/README.md)를 참고하세요. 이 기능은 상담 기록에 자동 연결되지 않습니다. 나머지 미션은 안내와 화면 예시를 제공합니다.
 
 ## 데이터 저장
 
@@ -108,7 +108,7 @@ TAXFLOW_VibeCode/
 └── README.md
 ```
 
-`ch02_intake`부터 `ch05_report`까지는 현재 챕터 시작 화면입니다. 백엔드의 `chapters/` 하위 폴더 이름도 프런트엔드와 일치하며, `ch` 접두사를 붙여 Python 모듈로 import할 수 있습니다. 가상 메모 조회 코드는 `db/demo_notes.py`에, 실제 상담 기록 API는 현재 `backend/app/main.py`에 있습니다.
+`ch03_evidence`부터 `ch05_report`까지는 현재 챕터 시작 화면입니다. 백엔드의 `chapters/` 하위 폴더 이름도 프런트엔드와 일치하며, `ch` 접두사를 붙여 Python 모듈로 import할 수 있습니다. 가상 메모 조회 코드는 `db/demo_notes.py`에, 실제 상담 기록 API는 현재 `backend/app/main.py`에 있습니다.
 
 이전 `/chapters/01_consultation/`부터 `/chapters/05_report/`까지의 주소는 새 `ch01_`~`ch05_` 주소로 이동합니다. Python 서버를 실행 중이었다면 재시작해야 이전 주소의 자동 이동이 적용됩니다.
 

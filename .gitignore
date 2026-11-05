@@ -6,3 +6,8 @@ __pycache__/
 .env.*
 /data/*
 !/data/README.md
+
+data/(개인정보 주의)매도용_아파트 매매계약서.pdf
+data/(개인정보 주의)매수용_아파트 매매계약서.pdf
+models/qwen3-vl-4b
+models/qwen3-vl-8b
