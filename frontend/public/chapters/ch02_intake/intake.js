@@ -1,5 +1,65 @@
 const $ = id => document.getElementById(id);
 let pages = [], results = [], pendingResults = null, index = 0, busy = false, view = 'table';
+const consultationId = new URLSearchParams(location.search).get('consultation_id');
+const storageEnabled = /^[1-9]\d*$/.test(consultationId || '');
+let documentId = null, runId = null, savedRuns = [];
+if (storageEnabled) $('storage').hidden = false;
+async function storageRequest(url, method, payload) {
+  return request(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+}
+async function refreshDocuments() {
+  const data = await request(`/api/documents?consultation_id=${encodeURIComponent(consultationId)}`);
+  const select = $('storedDocuments'); select.replaceChildren(new Option('새 파일 등록', ''));
+  const labels = {registered:'등록됨', review_needed:'확인 필요', confirmed:'확인 완료', failed:'분석 실패'};
+  for (const item of data.items) select.add(new Option(`${item.filename} · ${labels[item.status] || item.status} · ${item.created_at}`, String(item.id)));
+  select.value = documentId ? String(documentId) : '';
+}
+async function refreshRuns() {
+  const data = await request(`/api/documents/${documentId}/runs`); savedRuns = data.items;
+  const select = $('storedRuns'); select.replaceChildren(new Option('분석 이력 선택', ''));
+  for (const run of savedRuns) select.add(new Option(`${run.created_at} · ${run.model.toUpperCase()} · ${run.status === 'completed' ? '분석 완료' : '분석 실패'}`, String(run.id)));
+  select.value = runId ? String(runId) : '';
+}
+function syncStorage() {
+  if (!storageEnabled) return;
+  $('storedDocuments').disabled = busy; $('storedRuns').disabled = busy || !documentId;
+  $('saveReview').disabled = $('confirmReview').disabled = busy || !runId || !results.length;
+}
+async function saveAnalysis(state, model, pageResults, error='') {
+  if (!storageEnabled || !documentId) return;
+  const data = await storageRequest(`/api/documents/${documentId}/runs`, 'POST', {status:state, model, pages:pageResults, error:error.slice(0,2000)});
+  if (state === 'completed') runId = data.id;
+  await refreshRuns(); await refreshDocuments();
+}
+async function saveReview(confirmed) {
+  try {
+    const parsed = results.map((r,i) => { try { const value = JSON.parse(r); if (!isCoreJson(value)) throw new Error(); return value; } catch { throw new Error(`${i+1}쪽 JSON 형식을 확인하세요.`); } });
+    await storageRequest(`/api/documents/${documentId}/runs/${runId}`, 'PUT', {pages:parsed, confirmed});
+    $('status').textContent = confirmed ? '확인 결과를 저장했습니다. 상담 항목에는 자동 반영되지 않습니다.' : '수정 결과를 저장했습니다. 원본 확인 후 확인 완료를 눌러 주세요.';
+    await refreshDocuments(); await refreshRuns();
+  } catch(e) { $('status').textContent = `저장 실패: ${e.message}`; }
+}
+$('saveReview').onclick = () => saveReview(false);
+$('confirmReview').onclick = () => saveReview(true);
+$('storedRuns').onchange = () => {
+  const run = savedRuns.find(item => String(item.id) === $('storedRuns').value);
+  if (!run || run.status !== 'completed') { runId = null; $('status').textContent = run ? `분석 실패: ${run.error || '오류'}` : '분석 이력을 선택하세요.'; syncStorage(); return; }
+  runId = run.id; results = JSON.parse(run.reviewed_json || run.raw_json).map(value => JSON.stringify(value,null,2)); index = 0;
+  $('status').textContent = run.reviewed_json ? '저장된 확인 결과입니다. 원본과 대조하세요.' : '저장된 AI 추출 결과입니다. 원본과 대조하세요.'; show();
+};
+$('storedDocuments').onchange = async () => {
+  const selected = $('storedDocuments').value;
+  if (!selected) { documentId = null; runId = null; pages = []; results = []; index = 0; $('filename').textContent = '선택된 파일 없음'; $('storedRuns').replaceChildren(new Option('분석 이력 없음','')); show(); return; }
+  busy = true; show(); $('status').textContent = '저장된 PDF를 불러오는 중입니다…';
+  try {
+    const response = await fetch(`/api/documents/${encodeURIComponent(selected)}/pdf`); if (!response.ok) throw new Error('저장된 PDF를 불러오지 못했습니다.');
+    const blob = await response.blob(); const data = await request('/api/intake/render', {method:'POST',headers:{'Content-Type':'application/pdf'},body:blob});
+    documentId = Number(selected); runId = null; pages = data.pages; results = []; index = 0; $('filename').textContent = $('storedDocuments').selectedOptions[0].textContent;
+    await refreshRuns(); const latest = savedRuns.find(run => run.status === 'completed');
+    if (latest) { $('storedRuns').value = String(latest.id); $('storedRuns').onchange(); } else $('status').textContent = '저장된 원본입니다. 계약 내용 구조화를 누르세요.';
+  } catch(e) { $('status').textContent = e.message; } finally { busy = false; show(); }
+};
+if (storageEnabled) refreshDocuments().catch(e => { $('status').textContent = `서류 목록을 불러오지 못했습니다: ${e.message}`; });
 const sections = [
   {key:'property', title:'부동산의 표시', number:'01', description:'소재지 · 토지 · 건물'},
   {key:'payments', title:'매매대금 및 지급', number:'02', description:'총액 · 계약금 · 중도금 · 잔금'},
@@ -13,7 +73,7 @@ const personFields = [
 function isCoreJson(data) {
   return !!data && ['property', 'payments'].every(key => Array.isArray(data[key]) &&
     data[key].every(item => item && typeof item.label === 'string' && typeof item.value === 'string')) &&
-    data.payments.every(item => typeof item.payment_method === 'string') &&
+    data.payments.every(item => item.payment_date === undefined || typeof item.payment_date === 'string') &&
     ['seller', 'buyer'].every(key => Array.isArray(data[key]) && data[key].every(person =>
       person && personFields.every(([field]) => typeof person[field] === 'string')));
 }
@@ -68,6 +128,7 @@ function renderResult(text) {
     } else {
       const list = document.createElement('dl'); list.className = 'field-list';
       data[key].forEach(item => {
+        if (key === 'payments' && (!paymentUtils.hasAmount(item.value) || /날짜|지급일|입금일|기일|일자/.test(item.label))) return;
         const row = document.createElement('div'); row.className = 'field-row';
         const label = document.createElement('dt'); label.textContent = item.label || '항목';
         const value = document.createElement('dd');
@@ -75,10 +136,11 @@ function renderResult(text) {
         const formatted = key === 'payments' ? paymentAmount(item.label, item.value) : null;
         amount.textContent = formatted || item.value || '미기재';
         value.append(amount);
-        if (key === 'payments' && (formatted || item.payment_method)) {
-          const method = document.createElement('span'); method.className = 'payment-method';
-          method.textContent = `지급방식: ${item.payment_method || '확인되지 않음'}`;
-          value.append(method);
+        if (key === 'payments' && !paymentUtils.isTotal(item.label)) {
+          value.classList.add('payment-fields');
+          const date = document.createElement('span'); date.className = 'payment-date';
+          date.textContent = paymentUtils.formatDate(item.payment_date || '') || item.payment_date || '확인되지 않음';
+          value.append(date);
         }
         row.append(label, value); list.append(row);
       });
@@ -108,6 +170,7 @@ function show() {
   $('tableView').setAttribute('aria-pressed', String(view === 'table'));
   $('jsonView').setAttribute('aria-pressed', String(view === 'json'));
   renderResult(visibleResult);
+  syncStorage();
 }
 async function request(url, options) {
   const response = await fetch(url, options);
@@ -127,7 +190,7 @@ async function runAnalysis() {
   $('elapsed').hidden = false;
   updateElapsed();
   const timer = setInterval(updateElapsed, 1000);
-  busy = true; const model = $('model').value; const nextResults = []; pendingResults = nextResults; show();
+  busy = true; const model = $('model').value; const nextResults = []; let dateWarning = false, contractDateWarning = false; const amountWarnings = new Set(); pendingResults = nextResults; show();
   for (let i = 0; i < pages.length; i++) {
     $('status').textContent = `${model.toUpperCase()} 모델로 구조화 중… 모델에 따라 수 분이 걸릴 수 있습니다.`;
     try {
@@ -137,21 +200,30 @@ async function runAnalysis() {
       } catch {
         throw new Error('서버가 핵심 항목 JSON을 반환하지 않았습니다. TAXFLOW 서버를 재시작한 뒤 다시 시도하세요.');
       }
+      dateWarning ||= data.date_warning === true;
+      contractDateWarning ||= data.contract_date_warning === true;
+      if (Array.isArray(data.amount_warnings)) data.amount_warnings.filter(item => typeof item === 'string').forEach(item => amountWarnings.add(item));
       nextResults[i] = data.text; index = i; show();
     } catch (error) {
       $('status').textContent = `${i + 1}페이지 구조화 실패: ${error.message} 이전 결과는 유지됩니다. 다시 시도해 주세요.`;
       clearInterval(timer); updateElapsed();
+      try { await saveAnalysis('failed', model, null, error.message); } catch (saveError) { $('status').textContent += ` 분석 실패 이력 저장 실패: ${saveError.message}`; }
       pendingResults = null; busy = false; show(); return;
     }
   }
   clearInterval(timer); updateElapsed();
-  results = nextResults; pendingResults = null; busy = false; index = 0;
-  $('status').textContent = `${model.toUpperCase()} 모델의 구조화가 완료되었습니다. 원본과 대조하고 필요한 내용을 수정하세요.`;
-  show();
+  results = nextResults; pendingResults = null; index = 0;
+  const warnings = [];
+  if (contractDateWarning) warnings.push('계약금의 계약일자가 불명확합니다. 원본을 확인해 입력해 주세요.');
+  if (amountWarnings.size) warnings.push(`${[...amountWarnings].join(', ')} 금액을 원문과 대조해 주세요.`);
+  if (dateWarning) warnings.push('일부 지급일이 중복되어 확인이 필요합니다.');
+  $('status').textContent = warnings.length ? warnings.join(' ') : `${model.toUpperCase()} 모델의 구조화이 완료되었습니다. 금액과 지급일을 원본과 대조하세요.`;
+  try { await saveAnalysis('completed', model, results.map(JSON.parse)); } catch (error) { runId = null; $('status').textContent = `분석은 완료됐지만 DB 저장에 실패했습니다: ${error.message} JSON 저장으로 결과를 보관하세요.`; }
+  busy = false; show();
 }
 $('file').addEventListener('change', async e => {
   const file = e.target.files[0]; e.target.value = '';
-  pages = []; results = []; index = 0; $('elapsed').hidden = true;
+  pages = []; results = []; index = 0; documentId = null; runId = null; $('elapsed').hidden = true;
   $('filename').textContent = file ? file.name : '선택된 파일 없음';
   if (!file) { $('status').textContent = 'PDF를 선택해 주세요.'; show(); return; }
   if (file.size > 20 * 1024 * 1024) { $('status').textContent = 'PDF 크기는 20MB 이하여야 합니다.'; show(); return; }
@@ -159,8 +231,14 @@ $('file').addEventListener('change', async e => {
   try {
     const data = await request('/api/intake/render', {method:'POST', headers:{'Content-Type':'application/pdf'}, body:file});
     pages = data.pages; results = Array(pages.length).fill('');
+    if (storageEnabled) {
+      const bytes = new Uint8Array(await file.arrayBuffer()); let binary = '';
+      for (let i=0; i<bytes.length; i+=32768) binary += String.fromCharCode(...bytes.subarray(i,i+32768));
+      const saved = await storageRequest('/api/documents', 'POST', {consultation_id:Number(consultationId),document_type:'acquisition_contract',filename:file.name,pdf:btoa(binary)});
+      documentId = saved.id; runId = null; await refreshDocuments(); await refreshRuns();
+    }
     await runAnalysis();
-  } catch (error) { $('status').textContent = error.message; }
+  } catch (error) { if (storageEnabled && !documentId) { pages = []; results = []; } $('status').textContent = error.message; }
   finally { busy = false; show(); }
 });
 $('tableView').onclick = () => { view = 'table'; show(); };

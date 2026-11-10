@@ -1,0 +1,6 @@
+.settlement-report-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;line-height:1.5;table-layout:fixed}
+.settlement-report-table th,.settlement-report-table td{border:1px solid #c8d1dc;padding:6px 8px;overflow-wrap:anywhere;text-align:left}
+.settlement-report-table th{background:#f1f4f8;color:#3c4859}
+.settlement-report-note{font-size:11px;color:#805821;line-height:1.5;margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.settlement-report-source{color:#59677a}
+@media print{.settlement-report-table tr{break-inside:avoid}}

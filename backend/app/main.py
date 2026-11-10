@@ -9,7 +9,10 @@ from urllib.parse import urlsplit
 
 from .db import connect, initialize
 from .db.demo_notes import list_demo_notes
+from .db import mission_progress
+from .chapters.ch01_consultation import acquisition as acquisition_api
 from .chapters.ch02_intake import api as intake_api
+from .chapters.ch02_intake import documents as document_api
 
 FRONTEND_ROOT = Path(__file__).resolve().parents[2] / "frontend" / "public"
 OLD_CHAPTER_PATHS = {
@@ -54,6 +57,13 @@ class Handler(SimpleHTTPRequestHandler):
                 cursor = connection.execute("INSERT INTO consultations (taxpayer_name, consulted_at, data) VALUES (?, ?, ?)", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False)))
                 record_id = cursor.lastrowid
             else:
+                # Preserve retired form fields in existing records when newer clients omit them.
+                existing = connection.execute("SELECT data FROM consultations WHERE id=?", (record_id,)).fetchone()
+                if existing:
+                    previous = json.loads(existing["data"])
+                    for field in ("consultationResult", "nextActions"):
+                        if field in previous and field not in data:
+                            data[field] = previous[field]
                 cursor = connection.execute("UPDATE consultations SET taxpayer_name=?, consulted_at=?, data=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False), record_id))
                 if not cursor.rowcount:
                     self.send_error(404)
@@ -61,7 +71,11 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json({"id": record_id})
 
     def do_POST(self):
-        if self.path in ("/api/intake/render", "/api/intake/parse"):
+        if urlsplit(self.path).path.startswith(("/api/acquisition/", "/api/contracts/")):
+            acquisition_api.handle(self)
+        elif urlsplit(self.path).path == "/api/documents" or urlsplit(self.path).path.startswith("/api/documents/"):
+            document_api.handle(self)
+        elif self.path in ("/api/intake/render", "/api/intake/parse"):
             self.intake_request()
         elif self.path == "/api/consultations":
             self.write_consultation()
@@ -108,10 +122,43 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def write_mission_progress(self, mission_id):
+        host = self.headers.get("Host", "")
+        origin = self.headers.get("Origin")
+        allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
+        if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)) or self.headers.get_content_type() != "application/json":
+            self.send_error(403)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 65536:
+                raise ValueError()
+            payload = json.loads(self.rfile.read(length))
+            if not isinstance(payload, dict) or set(payload) != {"checks", "completed"}:
+                raise ValueError()
+            checks, completed = payload["checks"], payload["completed"]
+            if (not 0 < mission_id <= 1000 or not isinstance(checks, list)
+                    or not 0 < len(checks) <= 100 or any(type(value) is not bool for value in checks)
+                    or type(completed) is not bool or (completed and not all(checks))):
+                raise ValueError()
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+            self.send_json_error("학습 기록 형식이 올바르지 않습니다.", 400)
+            return
+        mission_progress.save_progress({"id": mission_id, **payload})
+        self.send_json({"saved": True})
+
     def do_PUT(self):
         path = urlsplit(self.path).path
         parts = path.strip("/").split("/")
-        if len(parts) == 3 and parts[:2] == ["api", "consultations"] and parts[2].isdigit():
+        if len(parts) == 4 and parts[:2] == ["api", "consultations"] and parts[2].isdigit() and parts[3] == "settlement":
+            self.settlement_confirmation(int(parts[2]), write=True)
+        elif path.startswith(("/api/acquisition/", "/api/contracts/")):
+            acquisition_api.handle(self)
+        elif len(parts) == 3 and parts[:2] == ["api", "mission-progress"] and parts[2].isdigit():
+            self.write_mission_progress(int(parts[2]))
+        elif path.startswith("/api/documents/"):
+            document_api.handle(self)
+        elif len(parts) == 3 and parts[:2] == ["api", "consultations"] and parts[2].isdigit():
             self.write_consultation(int(parts[2]))
         else:
             self.send_error(404)
@@ -124,6 +171,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(403)
             return
         parts = urlsplit(self.path).path.strip("/").split("/")
+        if parts == ["api", "mission-progress"]:
+            mission_progress.clear_progress()
+            self.send_json({"deleted": True})
+            return
         if len(parts) != 3 or parts[:2] != ["api", "consultations"] or not parts[2].isdigit():
             self.send_error(404)
             return
@@ -152,7 +203,14 @@ class Handler(SimpleHTTPRequestHandler):
         if path.startswith("/api/") and self.headers.get("Host", "") not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"):
             self.send_error(403)
             return
-        if path == "/api/health":
+        parts = path.strip("/").split("/")
+        if len(parts) == 4 and parts[:2] == ["api", "consultations"] and parts[2].isdigit() and parts[3] == "settlement":
+            self.settlement_confirmation(int(parts[2]))
+        elif path.startswith(("/api/acquisition/", "/api/contracts/")):
+            acquisition_api.handle(self)
+        elif path == "/api/documents" or path.startswith("/api/documents/"):
+            document_api.handle(self)
+        elif path == "/api/health":
             with connect() as connection:
                 connection.execute("SELECT 1").fetchone()
             self.send_json({"status": "ok", "database": "ready"})
@@ -172,6 +230,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_error(404)
             else:
                 self.send_json({"id": row["id"], "data": json.loads(row["data"])})
+        elif path == "/api/mission-progress":
+            self.send_json({"items": mission_progress.read_progress()})
         elif path == "/api/demo-notes":
             self.send_json({"items": list_demo_notes()})
         elif path.startswith("/api/"):
@@ -179,9 +239,42 @@ class Handler(SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
+    def settlement_confirmation(self, record_id, write=False):
+        if write:
+            host = self.headers.get("Host", "")
+            origin = self.headers.get("Origin")
+            allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
+            if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)) or self.headers.get_content_type() != "application/json":
+                self.send_error(403)
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 0 < length <= 16384:
+                    raise ValueError()
+                data = json.loads(self.rfile.read(length))
+                fields = {f"{kind}_{field}" for kind in ("acquisition", "transfer") for field in ("amount", "date", "details")}
+                if not isinstance(data, dict) or set(data) != fields or any(not isinstance(v, str) or len(v) > 2000 for v in data.values()):
+                    raise ValueError()
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                self.send_json_error("수수 확인 내용의 형식이 올바르지 않습니다.", 400)
+                return
+        with connect() as connection:
+            if not connection.execute("SELECT 1 FROM consultations WHERE id=?", (record_id,)).fetchone():
+                self.send_error(404)
+                return
+            if write:
+                connection.execute("""INSERT INTO settlement_confirmations(consultation_id,data) VALUES(?,?)
+                    ON CONFLICT(consultation_id) DO UPDATE SET data=excluded.data, updated_at=CURRENT_TIMESTAMP""",
+                    (record_id, json.dumps(data, ensure_ascii=False)))
+                self.send_json({"saved": True})
+            else:
+                row = connection.execute("SELECT data FROM settlement_confirmations WHERE consultation_id=?", (record_id,)).fetchone()
+                self.send_json({"data": json.loads(row["data"]) if row else {}})
+
 
 def main() -> None:
     initialize()
+    mission_progress.initialize()
     port = int(os.environ.get("PORT", "8765"))
     handler = partial(Handler, directory=str(FRONTEND_ROOT))
     server = ThreadingHTTPServer(("127.0.0.1", port), handler)

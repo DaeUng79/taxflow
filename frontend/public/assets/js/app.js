@@ -1,8 +1,8 @@
-/* Display-only prototype. No model calls, file uploads, calculations, or filing. */
+/* Learning progress is stored locally; mission examples do not perform tax calculations or filing. */
 (() => {
   'use strict';
   const M = COURSE.missions;
-  const state = {done:new Set(),checks:{},tab:'guide',reviewItem:6};
+  const state = {done:new Set(),checks:{},tab:'guide',reviewItem:6,progressReady:false};
   const $ = selector => document.querySelector(selector);
   const icons = {
     grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -36,14 +36,74 @@
   const currentMission = () => M.find(m=>route()===`mission-${m.id}`);
   const nextId = () => M.find(m=>!state.done.has(m.id))?.id||M.length;
   $('#present-icon').innerHTML=icon('screen');
+  const pendingProgress = new Map();
+  let savingProgress = null;
+  const progressStatus = $('#progress-status');
+  function setProgressStatus(message, retry=false){
+    progressStatus.textContent=message;
+    $('#progress-retry').hidden=!retry;
+  }
+  async function loadProgress(){
+    try{
+      const response=await fetch('/api/mission-progress',{cache:'no-store'});
+      if(!response.ok)throw new Error();
+      const data=await response.json();
+      if(!Array.isArray(data.items))throw new Error();
+      for(const item of data.items){
+        const mission=M.find(m=>m.id===item.id);
+        if(!mission||!Array.isArray(item.checks))continue;
+        const checks=mission.checks.map((_,i)=>item.checks[i]===true);
+        state.checks[mission.id]=checks;
+        if(item.completed===true&&checks.length>0&&checks.every(Boolean))state.done.add(mission.id);
+      }
+      state.progressReady=true;
+      setProgressStatus('학습 기록 자동 저장');
+    }catch(error){setProgressStatus('학습 기록을 불러오지 못했습니다. 서버를 다시 시작한 뒤 새로고침해 주세요.');}
+    render(false);
+  }
+  function saveProgress(m){
+    pendingProgress.set(m.id,JSON.stringify({checks:[...state.checks[m.id]],completed:state.done.has(m.id)}));
+    flushProgress();
+  }
+  function flushProgress(){
+    if(savingProgress)return savingProgress;
+    savingProgress=(async()=>{
+      while(pendingProgress.size){
+        const [id,body]=pendingProgress.entries().next().value;
+        setProgressStatus('학습 기록 저장 중');
+        try{
+          const response=await fetch(`/api/mission-progress/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body});
+          if(!response.ok)throw new Error();
+          if(pendingProgress.get(id)===body)pendingProgress.delete(id);
+        }catch(error){setProgressStatus('학습 기록을 저장하지 못했습니다.',true);return;}
+      }
+      setProgressStatus('학습 기록 자동 저장');
+    })().finally(()=>{savingProgress=null;});
+    return savingProgress;
+  }
+  $('#progress-retry').addEventListener('click',()=>flushProgress());
+  async function resetProgress(){
+    if(!state.progressReady)return;
+    state.progressReady=false;
+    render(false);
+    if(savingProgress)await savingProgress;
+    try{
+      const response=await fetch('/api/mission-progress',{method:'DELETE',headers:{'Content-Type':'application/json'}});
+      if(!response.ok)throw new Error();
+      pendingProgress.clear();state.done.clear();state.checks={};
+      setProgressStatus('학습 기록 자동 저장');close();toast('학습 표시를 초기화했습니다.');
+    }catch(error){setProgressStatus('학습 기록을 초기화하지 못했습니다.',pendingProgress.size>0);toast('초기화하지 못했습니다. 서버 상태를 확인해 주세요.');}
+    state.progressReady=true;render(false);
+  }
+
 
   function nav(){
     const r=route();
-    $('#primary-nav').innerHTML=[['instructor','teacher','강사소개'],['agenda','clock','강의 타임라인'],['overview','grid','전체 여정'],['review','compare','업무 검토표 (검토중)'],['outputs','files','결과물 미리보기 (검토중)']].map(([id,i,t])=>`<a href="#${id}" class="primary-link ${r===id?'active':''}" ${r===id?'aria-current="page"':''}>${icon(i)}<span>${t}</span>${id==='overview'?`<span class="nav-count">${M.length}</span>`:''}</a>`).join('');
+    $('#primary-nav').innerHTML=[['instructor','teacher','강사소개'],['agenda','clock','강의 타임라인'],['overview','grid','전체 여정']].map(([id,i,t])=>`<a href="#${id}" class="primary-link ${r===id?'active':''}" ${r===id?'aria-current="page"':''}>${icon(i)}<span>${t}</span>${id==='overview'?`<span class="nav-count">${M.length}</span>`:''}</a>`).join('');
     $('#mission-nav').innerHTML=M.map(m=>`<a href="#mission-${m.id}" class="mission-link ${r===`mission-${m.id}`?'active':''} ${state.done.has(m.id)?'done':''}" ${r===`mission-${m.id}`?'aria-current="page"':''}><span class="step-number">${state.done.has(m.id)?'✓':num(m.id)}</span><span>${m.short}</span>${r===`mission-${m.id}`?'<span class="tiny-dot"></span>':''}</a>`).join('');
     $('#side-count').textContent=`${state.done.size} / ${M.length}`;
     $('#side-progress').style.width=`${state.done.size/M.length*100}%`;
-    $('#breadcrumb-current').textContent=currentMission()?.short||({instructor:'강사소개',agenda:'강의 타임라인',outputs:'결과물 미리보기',overview:'양도소득세',review:'내용 정리 · 업무 검토표',gate:'제출 전 신고서 검토',draft:'신고서 작성',submission:'신고·납부 인계'}[r]||'양도소득세');
+    $('#breadcrumb-current').textContent=currentMission()?.short||({instructor:'강사소개',agenda:'강의 타임라인',overview:'양도소득세',review:'내용 정리 · 업무 검토표',gate:'제출 전 신고서 검토',draft:'신고서 작성',submission:'신고·납부 인계'}[r]||'양도소득세');
   }
   function houseArt(){return `<svg class="house-art" viewBox="0 0 180 85" fill="none" aria-hidden="true"><path d="m30 62 58-31 63 27-60 24z" fill="#f3eff9"/><path d="M58 61V31l33-19 33 19v30L91 79Z" stroke="#b6a4d7"/><path d="m58 31 33 17 33-17M91 48v31M73 23l34 17M73 39v29M107 40v30" stroke="#c9bae2"/><path d="M91 12V4l33 19v8M91 4 58 23v8" stroke="#a98ecb"/><path d="m65 44 10 5v11l-10-5zM81 52l6 3v9l-6-3zM99 54l12-7v16l-12 7z" fill="#eee7f8" stroke="#c0a9dc"/><path d="m33 62 21 11M133 66l17-9" stroke="#d9cfeb"/><circle cx="38" cy="45" r="3" fill="#d1c2e6"/><path d="M38 48v13" stroke="#bdabd6"/></svg>`;}
   function instructorPage(){return `<section class="page instructor-page"><div class="page-header"><div><div class="eyebrow">INSTRUCTOR</div><h1>강사소개</h1><p>강사 소개 페이지를 이 화면에서 확인하세요.</p></div><a class="button secondary" href="https://daeung79.github.io/MeetMe/" target="_blank" rel="noopener noreferrer">원본 사이트 열기 ${icon('arrow')}</a></div><iframe class="instructor-frame" title="강사소개 — MeetMe" src="https://daeung79.github.io/MeetMe/" referrerpolicy="no-referrer"></iframe><a class="instructor-url" href="https://daeung79.github.io/MeetMe/" target="_blank" rel="noopener noreferrer">https://daeung79.github.io/MeetMe/ ↗</a></section>`;}
@@ -77,20 +137,20 @@
       <div class="consultation-field"><small>비용·다른 양도</small><strong>필요경비 · 같은 해 양도</strong></div>
       <div class="consultation-field"><small>자료와 후속 확인</small><strong>계약서 · 초본 · 대금자료 · 메모</strong></div>
     </div>
-    <div class="consultation-followup"><b>상담 관리</b><span>가상 데이터 입력 · 새 상담 · 상담 저장 · 목록에서 수정 · 상단 보고서 보기</span></div>
+    <div class="consultation-followup"><b>상담 관리</b><span>가상 데이터 입력 · 새 상담 · 상담 저장 · 목록에서 수정 · 상단 상담서 출력</span></div>
     <div class="consultation-report-preview">
       <div class="report-mini-paper" aria-label="가상 상담의 개인별 보고서 구성 예시">
-        <small>PERSONAL REPORT · A4</small><h4>개인별 상담 보고서</h4><p class="report-mini-meta">홍길동 (가상) · 접수번호 예시</p>
+        <small>PERSONAL REPORT · A4</small><h4>양도소득세 상담서</h4><p class="report-mini-meta">홍길동 (가상) · 접수번호 예시</p>
         <div><span>납세자와 주택</span><b>성명 · 주소 · 소유 형태</b></div>
         <div><span>취득과 양도</span><b>계약일 · 잔금일 · 가액</b></div>
         <div><span>거주와 세대</span><b>실제 거주 · 다른 주택</b></div>
         <div><span>자료와 후속 확인</span><b>증빙 상태 · 전달 메모</b></div>
         <p class="report-mini-foot">상담 입력 요약 · 세액·비과세 판단 미포함</p>
       </div>
-      <div class="report-mini-guide"><small>REPORT / AFTER SAVE</small><h4>저장된 상담을 한 장으로</h4><ol><li>가상 데이터를 입력하고 상담을 저장합니다.</li><li>상단 <b>보고서 보기</b>를 누릅니다. 저장된 기록은 목록에서 선택한 뒤 열 수 있습니다.</li><li><b>인쇄 · PDF 저장</b>을 눌러 A4 1쪽을 확인하고, 인쇄 창에서 PDF로 저장합니다.</li></ol><a href="chapters/ch01_consultation/consultation/index.html">상담 화면에서 확인 ↗</a></div>
+      <div class="report-mini-guide"><small>REPORT / AFTER SAVE</small><h4>상담 결과를 함께 확인</h4><ol><li>가상 데이터를 입력하고 상담을 저장합니다.</li><li>상단 <b>상담서 출력</b>를 누릅니다. 저장된 기록은 목록에서 선택한 뒤 열 수 있습니다.</li><li><b>인쇄 · PDF 저장</b>을 눌러 상담서 내용을 확인하고, 인쇄 창에서 PDF로 저장합니다.</li></ol><a href="chapters/ch01_consultation/consultation/index.html">상담 화면에서 확인 ↗</a></div>
     </div>
   </div>`;}
-  function consultationBuildGuide(){return `<div class="build-guide"><h3>처음부터 따라 하기</h3><p>아래 내용을 AI 코딩 도구에 차례대로 요청하고, 결과를 하나씩 확인해 보세요.</p><h4>1. 화면을 실행해요</h4><p>터미널에서 프로젝트 폴더 <code>TAXFLOW_VibeCode</code>로 이동한 다음 <code>python3 -m backend</code>를 입력하세요. 실행 후 <a href="chapters/ch01_consultation/consultation/index.html">상담 화면 열기 ↗</a>를 눌러 확인합니다. 종료할 때는 터미널에서 Ctrl+C를 누릅니다.</p><h4>2. 물어볼 내용을 입력란으로 만들어요</h4><p>신고자의 이름과 생년월일, 주택 주소, 취득·양도 날짜와 금액, 거주 기간, 가족과 다른 주택, 전출 후 거주, 비용을 질문합니다. 받은 서류와 세무사에게 전달할 내용도 적습니다.</p><p>이름과 주소는 직접 입력합니다. 날짜는 달력에서 고르고, 답이 정해진 질문은 선택 목록을 사용합니다. 모르는 내용은 비워 두거나 ‘확인 필요’를 선택합니다. 이름은 꼭 입력해야 합니다.</p><p>금액에는 천 단위 쉼표가 표시됩니다. 화살표를 누르면 취득·양도가액은 1억 원씩, 필요경비는 1천만 원씩 조정됩니다. 원하는 금액을 직접 입력할 수도 있습니다.</p><h4>3. 상담 기록을 관리해요</h4><p>왼쪽 ‘상담 현황’에서 이름으로 기록을 찾습니다. 이름을 누르면 저장된 내용을 열어 고칠 수 있습니다. 오른쪽 위에는 ‘가상 데이터 입력’, ‘새 상담’, ‘상담 저장’, 저장 후 활성화되는 ‘보고서 보기’ 버튼이 있습니다.</p><p>저장할 때 날짜와 시간이 자동으로 기록됩니다. 수정 후 다시 저장하면 상담일이 마지막 저장 시각으로 바뀝니다. 삭제 버튼을 누르면 확인창이 나타납니다.</p><h4>4. 개인별 보고서로 정리해요</h4><p>상담을 저장하면 상단 ‘보고서 보기’가 활성화됩니다. 이미 저장된 상담은 왼쪽 목록에서 기록을 선택한 뒤 같은 버튼을 누릅니다. 수정 중인 내용이 저장되지 않았다면 보고서 버튼이 비활성화되므로 먼저 다시 저장하세요.</p><p>보고서에는 납세자와 주택, 취득·양도, 거주와 세대, 비용과 수집 자료가 A4 한 장에 정리됩니다. 미입력 항목은 그대로 표시하고 긴 메모는 일부만 보여 원본 확인을 안내합니다. 이 보고서는 상담 사실관계 요약이며 세액이나 비과세 여부를 판단하지 않습니다.</p><p>보고서의 ‘인쇄 · PDF 저장’을 누르면 인쇄 미리보기가 열립니다. A4 1쪽인지 확인하고, PDF 파일이 필요하면 인쇄 창의 대상을 ‘PDF로 저장’으로 선택하세요.</p><h4>5. 입력한 내용은 어떻게 저장되나요?</h4><div class="consultation-flow" aria-label="사용자 입력에서 데이터 저장과 불러오기까지의 흐름"><div class="flow-step"><span>01</span><strong>사용자 입력</strong><small>상담 내용을 적고<br>저장 버튼 클릭</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>02</span><strong>상담 화면</strong><small>입력 내용과 저장 시각을<br>서버에 전달</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>03</span><strong>파이썬 서버</strong><small>요청을 확인하고<br>저장 요청 처리</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>04</span><strong>SQLite 파일</strong><small>상담 내용을 컴퓨터에<br>저장</small></div></div><p class="flow-return">다시 볼 때는 SQLite 파일 → 서버 → 상담 화면 → 사용자 순서로 불러옵니다.</p><p>내용은 컴퓨터의 <code>data/taxflow.sqlite3</code> 파일에 저장됩니다. SQLite는 이런 기록을 파일에 정리해 보관하는 데이터베이스입니다. 서버를 다시 켜도 같은 파일을 사용합니다.</p><p>화면 파일은 <code>frontend/public/chapters/ch01_consultation/consultation/</code>에 있고, 저장과 불러오기를 처리하는 서버 코드는 <code>backend/app/main.py</code>에 있습니다. 저장 구조는 <code>backend/app/db/schema.sql</code>에 정의합니다.</p><p>화면과 서버가 주고받는 요청을 API라고 합니다. 이 프로그램은 <code>/api/consultations</code> 주소로 목록 조회와 신규 저장을 처리하고, 뒤에 접수번호를 붙여 상세 조회·수정·삭제를 처리합니다.</p><h4>6. 직접 확인해요</h4><p>① ‘가상 데이터 입력’을 누르고 저장합니다. ② 화면을 새로고침한 뒤 이름으로 검색합니다. ③ 기록을 열어 내용을 수정하고 다시 저장합니다. ④ 상단 ‘보고서 보기’로 개인별 보고서를 엽니다. ⑤ 인쇄 미리보기에서 A4 1쪽과 PDF 저장 대상을 확인합니다. ⑥ 삭제 확인창은 취소로 시험합니다.</p><p>삭제한 상담은 복구할 수 없습니다. 화면에서 서류를 첨부하거나 세액을 계산하는 기능은 아직 없습니다.</p></div>`;}
+  function consultationBuildGuide(){return `<div class="build-guide"><h3>처음부터 따라 하기</h3><p>아래 내용을 AI 코딩 도구에 차례대로 요청하고, 결과를 하나씩 확인해 보세요.</p><h4>1. 화면을 실행해요</h4><p>터미널에서 프로젝트 폴더 <code>TAXFLOW_VibeCode</code>로 이동한 다음 <code>python3 -m backend</code>를 입력하세요. 실행 후 <a href="chapters/ch01_consultation/consultation/index.html">상담 화면 열기 ↗</a>를 눌러 확인합니다. 종료할 때는 터미널에서 Ctrl+C를 누릅니다.</p><h4>2. 물어볼 내용을 입력란으로 만들어요</h4><p>신고자의 이름과 생년월일, 주택 주소, 취득·양도 날짜와 금액, 거주 기간, 가족과 다른 주택, 전출 후 거주, 비용을 질문합니다. 받은 서류와 세무사에게 전달할 내용도 적습니다.</p><p>이름과 주소는 직접 입력합니다. 날짜는 달력에서 고르고, 답이 정해진 질문은 선택 목록을 사용합니다. 모르는 내용은 비워 두거나 ‘확인 필요’를 선택합니다. 이름은 꼭 입력해야 합니다.</p><p>금액에는 천 단위 쉼표가 표시됩니다. 화살표를 누르면 취득·양도가액은 1억 원씩, 필요경비는 1천만 원씩 조정됩니다. 원하는 금액을 직접 입력할 수도 있습니다.</p><h4>3. 상담 기록을 관리해요</h4><p>왼쪽 ‘상담 현황’에서 이름으로 기록을 찾습니다. 이름을 누르면 저장된 내용을 열어 고칠 수 있습니다. 오른쪽 위에는 ‘가상 데이터 입력’, ‘새 상담’, ‘상담 저장’, 저장 후 활성화되는 ‘상담서 출력’ 버튼이 있습니다.</p><p>저장할 때 날짜와 시간이 자동으로 기록됩니다. 수정 후 다시 저장하면 상담일이 마지막 저장 시각으로 바뀝니다. 삭제 버튼을 누르면 확인창이 나타납니다.</p><h4>4. 상담서로 정리해요</h4><p>상담을 저장하면 상단 ‘상담서 출력’가 활성화됩니다. 이미 저장된 상담은 왼쪽 목록에서 기록을 선택한 뒤 같은 버튼을 누릅니다. 수정 중인 내용이 저장되지 않았다면 상담서 버튼이 비활성화되므로 먼저 다시 저장하세요.</p><p>상담서에는 상담 결과와 향후 조치, 납세자·주택 정보, 취득·양도, 거주와 세대, 비용과 서류 상태를 표시합니다. 미입력 항목은 그대로 표시하며 입력한 내용은 생략하지 않습니다. 세액이나 비과세 여부를 자동으로 판단하지 않습니다.</p><p>상담서의 ‘인쇄 · PDF 저장’을 누르면 인쇄 미리보기가 열립니다. 내용을 확인하고, PDF 파일이 필요하면 인쇄 창의 대상을 ‘PDF로 저장’으로 선택하세요.</p><h4>5. 입력한 내용은 어떻게 저장되나요?</h4><div class="consultation-flow" aria-label="사용자 입력에서 데이터 저장과 불러오기까지의 흐름"><div class="flow-step"><span>01</span><strong>사용자 입력</strong><small>상담 내용을 적고<br>저장 버튼 클릭</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>02</span><strong>상담 화면</strong><small>입력 내용과 저장 시각을<br>서버에 전달</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>03</span><strong>파이썬 서버</strong><small>요청을 확인하고<br>저장 요청 처리</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-step"><span>04</span><strong>SQLite 파일</strong><small>상담 내용을 컴퓨터에<br>저장</small></div></div><p class="flow-return">다시 볼 때는 SQLite 파일 → 서버 → 상담 화면 → 사용자 순서로 불러옵니다.</p><p>내용은 컴퓨터의 <code>data/taxflow.sqlite3</code> 파일에 저장됩니다. SQLite는 이런 기록을 파일에 정리해 보관하는 데이터베이스입니다. 서버를 다시 켜도 같은 파일을 사용합니다.</p><p>화면 파일은 <code>frontend/public/chapters/ch01_consultation/consultation/</code>에 있고, 저장과 불러오기를 처리하는 서버 코드는 <code>backend/app/main.py</code>에 있습니다. 저장 구조는 <code>backend/app/db/schema.sql</code>에 정의합니다.</p><p>화면과 서버가 주고받는 요청을 API라고 합니다. 이 프로그램은 <code>/api/consultations</code> 주소로 목록 조회와 신규 저장을 처리하고, 뒤에 접수번호를 붙여 상세 조회·수정·삭제를 처리합니다.</p><h4>6. 직접 확인해요</h4><p>① ‘가상 데이터 입력’을 누르고 저장합니다. ② 화면을 새로고침한 뒤 이름으로 검색합니다. ③ 기록을 열어 내용을 수정하고 다시 저장합니다. ④ 상단 ‘상담서 출력’로 상담서 팝업을 엽니다. ⑤ 인쇄 미리보기에서 상담서 내용과 PDF 저장 대상을 확인합니다. ⑥ 삭제 확인창은 취소로 시험합니다.</p><p>삭제한 상담은 복구할 수 없습니다. 화면에서 서류를 첨부하거나 세액을 계산하는 기능은 아직 없습니다.</p></div>`;}
   function worksheet(id){
     const m=M[id-1];
     if(id===4)return shell(m.output, consultationPreview(), '화면 구성 예시 · 실제 상담 저장과 개인별 보고서 출력은 상담 화면에서 진행합니다.');
@@ -159,19 +219,16 @@ python -m backend</pre><p>화면에 <code>TAXFLOW http://127.0.0.1:8765/</code>�
   function missionPage(m){
     const checks=state.checks[m.id]||Array(m.checks.length).fill(false);
     return `<section class="page mission-page"><a class="back-link" href="#overview">${icon('back')}전체 여정으로</a><div class="mission-heading"><div><div class="eyebrow">MISSION ${num(m.id)} <span style="color:#c6bfd0">/ ${M.length}</span> <span>· ${m.phase}</span>${m.workflowStep?` <span>· 업무 단계 ${num(m.workflowStepNumber)} ${m.workflowStep}</span>`:''}</div><h1>${m.title}</h1><p>${m.subtitle}</p></div><div class="mission-time">${badge(m)}${icon('clock')}<span class="duration">${m.minutes}분</span></div></div><div class="mini-path" aria-label="전체 11개 미션에서 현재 위치">${M.map(x=>`<a href="#mission-${x.id}" class="${x.id===m.id?'active':''} ${state.done.has(x.id)?'done':''}" aria-label="미션 ${x.id}: ${x.short}" ${x.id===m.id?'aria-current="step"':''}></a>`).join('')}</div>
-      <div class="mission-layout"><div><div class="mission-workspace"><div class="workspace-tabs" role="tablist" aria-label="미션 화면">${[['guide','미션 안내'],['sample','작업 화면']].map(([t,n])=>`<button role="tab" id="tab-${t}" aria-controls="mission-panel" aria-selected="${state.tab===t}" class="${state.tab===t?'active':''}" data-tab="${t}">${n}</button>`).join('')}</div><div class="tab-content" id="mission-panel" role="tabpanel" aria-labelledby="tab-${state.tab}">${tabContent(m)}</div></div><details class="teacher-note"><summary>${icon('teacher')}강사 진행 노트</summary><p>${m.note}</p></details><div class="mission-nav-bottom">${m.id>1?`<a href="#mission-${m.id-1}">${icon('back')}이전 미션</a>`:'<span></span>'}${m.id<M.length?`<a href="#mission-${m.id+1}">다음 미션 미리보기${icon('arrow')}</a>`:'<a href="#outputs">결과물 전체 보기 →</a>'}</div></div>
-      <aside class="completion-panel"><div class="eyebrow">YOUR TAKEAWAY</div><h3>완료하면 남는 것</h3><div class="deliverable-mini">${icon('file')}<span><small>MISSION ${num(m.id)} OUTPUT</small>${m.output}</span></div><div class="check-heading"><span>학습 확인</span><span id="check-count">${checks.filter(Boolean).length} / ${m.checks.length}</span></div><div class="checks">${m.checks.map((t,i)=>`<label class="completion-check"><input type="checkbox" data-check="${i}" ${checks[i]?'checked':''}><span>${t}</span></label>`).join('')}</div><button class="button primary" id="complete-button" data-action="complete" ${!checks.every(Boolean)?'disabled':''}>${state.done.has(m.id)?'완료한 미션 다시 보기':'학습 완료 표시'}${icon('check')}</button><p class="completion-help">학습 확인 ${m.checks.length}개를 체크하면 완료할 수 있어요.<br>완료 표시는 현재 페이지를 새로 열면 초기화됩니다.</p></aside></div></section>`;
+      <div class="mission-layout"><div><div class="mission-workspace"><div class="workspace-tabs" role="tablist" aria-label="미션 화면">${[['guide','미션 안내'],['sample','작업 화면']].map(([t,n])=>`<button role="tab" id="tab-${t}" aria-controls="mission-panel" aria-selected="${state.tab===t}" class="${state.tab===t?'active':''}" data-tab="${t}">${n}</button>`).join('')}</div><div class="tab-content" id="mission-panel" role="tabpanel" aria-labelledby="tab-${state.tab}">${tabContent(m)}</div></div><details class="teacher-note"><summary>${icon('teacher')}강사 진행 노트</summary><p>${m.note}</p></details><div class="mission-nav-bottom">${m.id>1?`<a href="#mission-${m.id-1}">${icon('back')}이전 미션</a>`:'<span></span>'}${m.id<M.length?`<a href="#mission-${m.id+1}">다음 미션 미리보기${icon('arrow')}</a>`:'<a href="#overview">전체 여정으로 돌아가기 →</a>'}</div></div>
+      <aside class="completion-panel"><div class="eyebrow">YOUR TAKEAWAY</div><h3>완료하면 남는 것</h3><div class="deliverable-mini">${icon('file')}<span><small>MISSION ${num(m.id)} OUTPUT</small>${m.output}</span></div><div class="check-heading"><span>학습 확인</span><span id="check-count">${checks.filter(Boolean).length} / ${m.checks.length}</span></div><div class="checks">${m.checks.map((t,i)=>`<label class="completion-check"><input type="checkbox" data-check="${i}" ${checks[i]?'checked':''} ${!state.progressReady?'disabled':''}><span>${t}</span></label>`).join('')}</div><button class="button primary" id="complete-button" data-action="complete" ${!state.progressReady||!checks.every(Boolean)?'disabled':''}>${state.done.has(m.id)?'완료한 미션 다시 보기':'학습 완료 표시'}${icon('check')}</button><p class="completion-help">학습 확인 ${m.checks.length}개를 체크하면 완료할 수 있어요.<br>학습 확인과 완료 표시는 이 컴퓨터에 저장됩니다.</p></aside></div></section>`;
   }
   function agenda(){
     return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">THE CLASS, AT A GLANCE</div><h1>오늘, 이렇게 진행합니다.</h1><p>업무를 배우는 시간을 줄이고, 자동화를 검증하는 시간을 늘립니다.</p></div><span class="badge purple">14:00–18:00 · 4시간 워크숍</span></div><div class="agenda-summary"><div><div class="eyebrow">ONE CASE. FIVE CHAPTERS.</div><h2>실행하고, 확인하고, 적용하기.</h2><p>로컬 실행 환경을 준비하고 11모듈을 경험한 뒤, 결과물의 실무 적용 범위를 토의합니다.<br><b>장소: 서면 지오파트너스 소회의실</b></p></div><div class="agenda-duration"><strong>240</strong><span>분의 여정<small>강의·실습 210분 + 휴식 30분</small></span></div></div><div class="agenda-track">${COURSE.sessions.map((s,i)=>`<article class="agenda-card"><div class="agenda-time"><b>${s.n}</b><span>${s.time}<br>${s.minutes}분</span></div><div class="agenda-content"><h3>${s.title}</h3><p>${s.desc}</p><div class="agenda-tags">${s.missions.map(id=>`<a href="#mission-${id}">${num(id)} ${M[id-1].short}</a>`).join('')}</div></div></article>${i<3?`<div class="break-row">${icon('coffee')}10분 휴식 · 질문을 정리하고 다음 미션을 준비하세요</div>`:''}`).join('')}</div><div class="after-course"><div class="section-heading"><h3>이후에도, 같은 결과물을 발전시킵니다.</h3><span class="badge outline">2주 간격 · 후속 과정 제안</span></div><div class="followup-flow">${[['2회 · 3시간','문서 품질·OCR'],['3회 · 4시간','근거 검색·시점 관리'],['4회 · 4시간','계산·신고서 대조'],['5회 · 4시간','사무소별 화면·양식'],['6회 · 3시간','시범 운영·개선']].map(([t,n])=>`<div><small>${t}</small>${n}</div>`).join('')}</div></div></section>`;
   }
-  function outputs(){
-    return `<section class="page"><div class="page-header"><div><div class="eyebrow" style="margin-bottom:9px">YOUR PRACTICE LIBRARY</div><h1>미션이 쌓이면, 업무가 정리됩니다.</h1><p>각 단계에서 만들 결과물의 형태를 먼저 살펴보세요.</p></div></div><div class="output-intro"><div><h2>나의 실무 도구함</h2><p>로컬 실행 준비부터 검토 리포트까지 연결되는 11개의 결과물 예시</p></div><span class="badge outline">생성된 파일이 아닌 화면 예시입니다</span></div><div class="output-grid">${M.map(m=>`<button class="output-card" data-output="${m.id}"><div class="output-paper-preview"><span class="paper-mission">MISSION ${num(m.id)}</span><div class="mini-document"><strong>${m.short}</strong><span></span><span></span><span></span><span></span><span></span></div></div><div class="output-info"><small>${m.phase} · ${m.type}</small><h3>${m.output}</h3><p>${state.done.has(m.id)?'학습 확인을 마친 미션':'미션에서 확인할 결과물'}</p><span class="output-link">예시 열기 ${icon('arrow')}</span></div></button>`).join('')}</div></section>`;
-  }
   function render(resetScroll=true){
     const r=route(),m=currentMission();
-    $('#main').innerHTML=m?missionPage(m):r==='instructor'?instructorPage():r==='agenda'?agenda():r==='outputs'?outputs():r==='review'?reviewPage(false):r==='gate'?reviewPage(true):r==='draft'?draftPage():r==='submission'?submissionPage():overview();nav();
-    document.title=`${m?m.short:r==='instructor'?'강사소개':r==='agenda'?'강의 타임라인':r==='outputs'?'결과물 미리보기':'양도소득세 실무 여정'} — TAXFLOW`;
+    $('#main').innerHTML=m?missionPage(m):r==='instructor'?instructorPage():r==='agenda'?agenda():r==='review'?reviewPage(false):r==='gate'?reviewPage(true):r==='draft'?draftPage():r==='submission'?submissionPage():overview();nav();
+    document.title=`${m?m.short:r==='instructor'?'강사소개':r==='agenda'?'강의 타임라인':'양도소득세 실무 여정'} — TAXFLOW`;
     document.body.classList.remove('menu-open');
     if(resetScroll)window.scrollTo({top:0,behavior:'instant'});
   }
@@ -182,11 +239,11 @@ python -m backend</pre><p>화면에 <code>TAXFLOW http://127.0.0.1:8765/</code>�
   }
   function modal(content){$('#dialog-content').innerHTML=content;$('#dialog').showModal();}
   function close(){if($('#dialog').open)$('#dialog').close();}
-  function about(){modal(`<div class="dialog-inner"><div class="dialog-top"><h2>실무를 따라 배우는, TAXFLOW</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>실무에 능통한 세무사를 대상으로 설치·상담·추출·구조화·검토 자동화의 11모듈을 보여주는 교육용 디자인 프로토타입입니다. 특수자산·복잡한 특례는 후속 과정에서 확장합니다.</p><p>화면 이동, 예시 보기, 학습 완료 표시만 동작합니다. AI 분석·파일 처리·세액 계산·실제 신고는 연결되어 있지 않습니다. 새로고침하면 학습 표시는 초기화됩니다.</p><div class="dialog-label">향후 로컬 실행 설계</div><div class="runtime-diagram"><span>HTML 화면</span>${icon('arrow')}<span>로컬 OCR·업무 서버</span>${icon('arrow')}<span>llama.cpp<br>Gemma 4 · GGUF</span></div><p>로컬 OCR은 문자 추출을 맡고, llama.cpp는 언어모델 추론을 맡습니다. 계산은 승인 규칙을 구현한 별도 모듈로 처리합니다. llama.cpp는 실행 엔진이며 Gemma 4는 모델입니다. 실제 연결은 호환 빌드·GGUF·채팅 템플릿 확인 후 별도 진행합니다.</p><div class="dialog-label">DESIGN REFERENCES · 구성 원칙 참고</div><div class="reference-links"><a href="https://linear.app/features" target="_blank" rel="noopener noreferrer">Linear · 업무 구조 ↗</a><a href="https://stripe.com/billing" target="_blank" rel="noopener noreferrer">Stripe · 정보 위계 ↗</a><a href="https://brilliant.org/" target="_blank" rel="noopener noreferrer">Brilliant · 학습 진행 ↗</a></div><p>참고 사이트와 제휴 관계가 없으며, 로고·고유 화면을 복제하지 않은 독립 디자인입니다.</p><div class="reference-links"><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md" target="_blank" rel="noopener noreferrer">llama.cpp 공식 문서 ↗</a><a href="https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7709&mi=2310" target="_blank" rel="noopener noreferrer">국세청 계산 흐름 ↗</a></div><div class="dialog-actions"><button class="button secondary" data-action="reset-dialog">학습 표시 초기화</button><button class="button primary" data-action="close">둘러보기 계속 ${icon('arrow')}</button></div></div>`);}
+  function about(){modal(`<div class="dialog-inner"><div class="dialog-top"><h2>실무를 따라 배우는, TAXFLOW</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>실무에 능통한 세무사를 대상으로 설치·상담·추출·구조화·검토 자동화의 11모듈을 보여주는 교육용 디자인 프로토타입입니다. 특수자산·복잡한 특례는 후속 과정에서 확장합니다.</p><p>화면 이동, 예시 보기, 학습 완료 표시만 동작합니다. AI 분석·파일 처리·세액 계산·실제 신고는 연결되어 있지 않습니다. 학습 확인과 완료 표시는 이 컴퓨터에 저장됩니다.</p><div class="dialog-label">향후 로컬 실행 설계</div><div class="runtime-diagram"><span>HTML 화면</span>${icon('arrow')}<span>로컬 OCR·업무 서버</span>${icon('arrow')}<span>llama.cpp<br>Gemma 4 · GGUF</span></div><p>로컬 OCR은 문자 추출을 맡고, llama.cpp는 언어모델 추론을 맡습니다. 계산은 승인 규칙을 구현한 별도 모듈로 처리합니다. llama.cpp는 실행 엔진이며 Gemma 4는 모델입니다. 실제 연결은 호환 빌드·GGUF·채팅 템플릿 확인 후 별도 진행합니다.</p><div class="dialog-label">DESIGN REFERENCES · 구성 원칙 참고</div><div class="reference-links"><a href="https://linear.app/features" target="_blank" rel="noopener noreferrer">Linear · 업무 구조 ↗</a><a href="https://stripe.com/billing" target="_blank" rel="noopener noreferrer">Stripe · 정보 위계 ↗</a><a href="https://brilliant.org/" target="_blank" rel="noopener noreferrer">Brilliant · 학습 진행 ↗</a></div><p>참고 사이트와 제휴 관계가 없으며, 로고·고유 화면을 복제하지 않은 독립 디자인입니다.</p><div class="reference-links"><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md" target="_blank" rel="noopener noreferrer">llama.cpp 공식 문서 ↗</a><a href="https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7709&mi=2310" target="_blank" rel="noopener noreferrer">국세청 계산 흐름 ↗</a></div><div class="dialog-actions"><button class="button secondary" data-action="reset-dialog">학습 표시 초기화</button><button class="button primary" data-action="close">둘러보기 계속 ${icon('arrow')}</button></div></div>`);}
   function completed(){
-    const m=currentMission();if(!m||!(state.checks[m.id]||[]).every(Boolean)||(state.checks[m.id]||[]).length!==m.checks.length)return;
-    state.done.add(m.id);render(false);
-    modal(`<div class="complete-dialog"><div class="complete-seal">${icon('check')}</div><div class="eyebrow">MISSION ${num(m.id)} · LEARNING CHECKED</div><h2>${m.id===M.length?'다음은, 나의 실무입니다.':'하나의 단계를 완성했어요.'}</h2><p>${m.output}<br>전체 ${M.length}개 미션 중 ${state.done.size}개 학습 확인</p><div class="dialog-actions"><button class="button secondary" data-action="close">이 단계 다시 보기</button><button class="button primary" data-action="next">${m.id===M.length?'결과물 둘러보기':'다음 미션으로'}${icon('arrow')}</button></div><p style="font-size:9px;margin-top:20px">스스로 표시한 학습 완료입니다. 실제 세무 검토의 승인을 의미하지 않습니다.</p></div>`);
+    const m=currentMission();if(!state.progressReady||!m||!(state.checks[m.id]||[]).every(Boolean)||(state.checks[m.id]||[]).length!==m.checks.length)return;
+    state.done.add(m.id);saveProgress(m);render(false);
+    modal(`<div class="complete-dialog"><div class="complete-seal">${icon('check')}</div><div class="eyebrow">MISSION ${num(m.id)} · LEARNING CHECKED</div><h2>${m.id===M.length?'다음은, 나의 실무입니다.':'하나의 단계를 완성했어요.'}</h2><p>${m.output}<br>전체 ${M.length}개 미션 중 ${state.done.size}개 학습 확인</p><div class="dialog-actions"><button class="button secondary" data-action="close">이 단계 다시 보기</button><button class="button primary" data-action="next">${m.id===M.length?'전체 여정으로':'다음 미션으로'}${icon('arrow')}</button></div><p style="font-size:9px;margin-top:20px">스스로 표시한 학습 완료입니다. 실제 세무 검토의 승인을 의미하지 않습니다.</p></div>`);
   }
   function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');window.clearTimeout(state.toastTimer);state.toastTimer=window.setTimeout(()=>$('#toast').classList.remove('show'),3000);}
   document.addEventListener('click',e=>{
@@ -203,8 +260,6 @@ python -m backend</pre><p>화면에 <code>TAXFLOW http://127.0.0.1:8765/</code>�
     }
     const tab=e.target.closest('[data-tab]');if(tab){updateTab(tab.dataset.tab);return;}
     const review=e.target.closest('[data-review-item]');if(review){state.reviewItem=Number(review.dataset.reviewItem);render(false);return;}
-    const out=e.target.closest('[data-output]');if(out){const m=M[Number(out.dataset.output)-1];modal(`<div class="dialog-inner"><div class="dialog-top"><h2>${m.output}</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><div id="output-preview-body">${worksheet(m.id)}</div><div class="dialog-actions"><button class="button primary" data-jump="${m.id}">미션에서 살펴보기${icon('arrow')}</button></div></div>`);return;}
-    const jump=e.target.closest('[data-jump]');if(jump){close();location.hash=`mission-${jump.dataset.jump}`;return;}
     const action=e.target.closest('[data-action]')?.dataset.action;
     if(action==='copy-codex'){
       const prompt=$('#codex-prompt').textContent;
@@ -216,19 +271,20 @@ python -m backend</pre><p>화면에 <code>TAXFLOW http://127.0.0.1:8765/</code>�
     if(action==='residence')residenceModal();
     if(action==='close')close();
     if(action==='complete')completed();
-    if(action==='next'){const m=currentMission();close();location.hash=m.id===M.length?'outputs':`mission-${m.id+1}`;}
+    if(action==='next'){const m=currentMission();close();location.hash=m.id===M.length?'overview':`mission-${m.id+1}`;}
     if(action==='menu')document.body.classList.add('menu-open');
     if(action==='close-menu')document.body.classList.remove('menu-open');
     if(action==='present'){document.body.classList.toggle('presenting');$('#present-label').textContent=document.body.classList.contains('presenting')?'발표 모드 종료':'발표 모드';toast(document.body.classList.contains('presenting')?'강의 화면을 넓게 보여줍니다.':'기본 화면으로 돌아왔습니다.');}
-    if(action==='reset-dialog'){$('#dialog-content').innerHTML=`<div class="dialog-inner"><div class="dialog-top"><h2>학습 표시를 초기화할까요?</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>이 화면에서 체크한 학습 항목과 완료 표시만 초기화합니다. 실제 파일이나 데이터는 변경되지 않습니다.</p><div class="dialog-actions"><button class="button secondary" data-action="close">유지하기</button><button class="button primary" data-action="reset">초기화</button></div></div>`;}
-    if(action==='reset'){state.done.clear();state.checks={};close();render(false);toast('학습 표시를 초기화했습니다.');}
+    if(action==='reset-dialog'){$('#dialog-content').innerHTML=`<div class="dialog-inner"><div class="dialog-top"><h2>학습 표시를 초기화할까요?</h2><button class="icon-button" data-action="close" aria-label="닫기">${icon('close')}</button></div><p>저장된 학습 확인 항목과 완료 표시를 모두 초기화합니다. 상담 기록은 변경되지 않습니다.</p><div class="dialog-actions"><button class="button secondary" data-action="close">유지하기</button><button class="button primary" data-action="reset">초기화</button></div></div>`;}
+    if(action==='reset')resetProgress();
   });
   document.addEventListener('change',e=>{
-    if(!e.target.matches('[data-check]'))return;const m=currentMission();if(!m)return;
+    if(!e.target.matches('[data-check]')||!state.progressReady)return;const m=currentMission();if(!m)return;
     state.checks[m.id]??=Array(m.checks.length).fill(false);state.checks[m.id][Number(e.target.dataset.check)]=e.target.checked;
     $('#check-count').textContent=`${state.checks[m.id].filter(Boolean).length} / ${m.checks.length}`;
     $('#complete-button').disabled=!state.checks[m.id].every(Boolean);
     if(state.done.has(m.id)&&!state.checks[m.id].every(Boolean)){state.done.delete(m.id);nav();$('#complete-button').innerHTML=`학습 완료 표시${icon('check')}`;}
+    saveProgress(m);
   });
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape')document.body.classList.remove('menu-open');
@@ -236,4 +292,5 @@ python -m backend</pre><p>화면에 <code>TAXFLOW http://127.0.0.1:8765/</code>�
   });
   window.addEventListener('hashchange',()=>{state.tab='guide';render();});
   render();
+  loadProgress();
 })();

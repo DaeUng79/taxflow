@@ -3,32 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>개인별 상담 보고서 · TAXFLOW</title>
-  <link rel="stylesheet" href="report.css?v=2">
-  <script src="report.js?v=1" defer></script>
+  <title>양도소득세 상담서 · TAXFLOW</title>
+  <link rel="stylesheet" href="report.css?v=4">
+  <script src="report.js?v=7" defer></script>
 </head>
 <body>
   <div class="toolbar">
-    <a href="index.html">← 상담 화면</a>
-    <span id="print-help">저장된 상담을 불러오는 중입니다.</span>
+    <a href="index.html" id="back-to-consultation">← 상담 화면</a>
+    <span id="print-help" role="status">저장된 상담을 불러오는 중입니다.</span>
     <button id="print-report" type="button" disabled>인쇄 · PDF 저장</button>
   </div>
-  <main id="sheet" class="sheet" aria-label="A4 개인별 상담 보고서">
-    <div id="report-content" class="report-content">
-      <header class="report-header">
-        <div class="report-brand">TAXFLOW <span>상담 기록</span></div>
-        <p class="report-kind">양도소득세</p>
-        <h1>개인별 상담 보고서</h1>
-        <div class="report-meta"><span id="report-name">납세자 확인 중</span><span id="report-number"></span><span id="report-date"></span></div>
-      </header>
-      <p class="report-purpose">상담 시 입력한 사실관계와 수집 자료를 한 장으로 정리한 기록입니다.</p>
-      <div id="report-sections"></div>
-      <footer class="report-footer">
-        <p>※ 이 문서는 상담 입력 내용의 요약입니다. 세액 계산이나 비과세 여부 판단은 포함하지 않습니다.</p>
-        <p id="report-overflow" hidden>※ 긴 서술형 내용은 지면에 맞춰 일부만 표시했습니다. 전체 내용은 저장된 상담 기록에서 확인하세요.</p>
-        <div><strong>TAXFLOW</strong><span id="report-printed"></span></div>
-      </footer>
-    </div>
+  <main class="sheet" aria-label="양도소득세 상담서">
+    <header class="report-header">
+      <div class="report-brand">TAXFLOW <span>상담 기록</span></div>
+      <h1>양도소득세 상담서</h1>
+      <div class="report-meta"><span id="report-name">납세자 확인 중</span><span id="report-number"></span><span id="report-date"></span></div>
+    </header>
+    <div id="report-sections"></div>
+    <footer class="report-footer">
+      <p>※ 이 상담서는 상담 시 입력한 내용과 서류 상태를 정리한 것입니다. 기재 내용은 제출 자료와 추가 확인에 따라 달라질 수 있습니다.</p>
+      <p>※ 세액 계산, 비과세 적용 및 신고 완료 여부를 나타내지 않습니다.</p>
+      <div><strong>TAXFLOW</strong><span id="report-printed"></span></div>
+    </footer>
   </main>
 </body>
 </html>
