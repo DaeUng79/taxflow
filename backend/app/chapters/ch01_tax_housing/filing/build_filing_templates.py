@@ -1,6 +1,6 @@
 """Extract the three blank forms from the supplied educational R08 PDF.
 
-Usage: .venv/bin/python scripts/build_filing_templates.py /path/to/B_검토본_R08.pdf
+Usage: .venv/bin/python backend/app/chapters/ch01_tax_housing/filing/build_filing_templates.py /path/to/B_검토본_R08.pdf
 The educational values are a separate appended content section. Fail rather than
 silently publish a background containing taxpayer values if that structure changes.
 """
@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('source', type=Path)
     args = parser.parse_args()
-    destination = Path(__file__).resolve().parents[1] / 'frontend/public/chapters/ch01_tax_housing/filing'
+    destination = Path(__file__).resolve().parents[5] / 'frontend/public/chapters/ch01_tax_housing/filing'
     marker = b'q\n0.0 0.0 595 841 re\nW\nn\n1 0 0 1 0 0 cm'
     with fitz.open(args.source) as document:
         if len(document) != 3:

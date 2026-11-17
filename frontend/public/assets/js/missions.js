@@ -896,7 +896,7 @@ window.COURSE = {
           "frontend/public/chapters/ch01_tax_housing/filing-render.js",
           "frontend/public/chapters/ch01_tax_housing/filing-report.js",
           "frontend/public/chapters/ch01_tax_housing/filing-report.css",
-          "scripts/build_filing_templates.py",
+          "backend/app/chapters/ch01_tax_housing/filing/build_filing_templates.py",
           "tests/filing.cjs"
         ],
         "stages": [

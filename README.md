@@ -116,10 +116,11 @@ TAXFLOW_VibeCode/
 │   ├── app/db/                             # SQLite 스키마와 학습 기록
 │   └── app/chapters/
 │       ├── ch01_tax_housing/              # 계약서·초본·지역 조회 처리
+│       │   ├── Adjustment_Areas/          # 지역 자료 생성 스크립트
+│       │   └── filing/                    # 신고서 서식 생성 스크립트
 │       └── ch02_pdf_Parsing/                    # PDF 렌더링·AI 분석·문서 저장
 ├── data/                                   # 상담·학습 DB와 지역 이력 자료
 ├── models/                                 # 별도 준비한 로컬 AI 모델
-├── scripts/                                # 참조 자료와 서식 생성 도구
 ├── tests/                                  # Python·JavaScript 검증
 ├── requirements.txt                        # Python 패키지
 └── README.md
@@ -168,7 +169,14 @@ SQLite 파일은 기본적으로 암호화되지 않으며 PDF 원본과 분석 
 
 제공받은 지역별 이력 DB는 상담 DB와 별도인 `data/reference/regulated_area_history.sqlite3`에 보관합니다. 해제일이 비어 있으면 DB에 해제 기록이 없다는 뜻이며 현재 지정 여부를 보증하지 않습니다. 읍·면 예외, 조기 해제나 개발지구 경계가 있는 행은 비고와 원본을 확인해야 합니다. 원본은 `frontend/public/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/`에 있습니다.
 
-`data/reference/regulated_areas.sqlite3`는 앞서 생성한 PDF 페이지 추출본으로 그대로 보관합니다. `python scripts/build_regulated_areas.py`는 이 페이지 추출본만 재생성하며 지역별 이력 DB를 갱신하지 않습니다.
+지역 자료를 다시 생성할 때는 프로젝트 루트에서 아래 명령을 사용합니다. 기존 결과물이 덮어써지므로 원본을 확인한 뒤 실행하세요.
+
+```bash
+python backend/app/chapters/ch01_tax_housing/Adjustment_Areas/render_regulated_sources.py
+python backend/app/chapters/ch01_tax_housing/Adjustment_Areas/build_regulated_areas.py
+```
+
+첫 번째는 웹 화면의 PDF 페이지 이미지를 생성합니다. 두 번째는 `data/reference/regulated_areas.sqlite3` 페이지 추출본만 재생성하며 지역별 이력 검색에 쓰는 `regulated_area_history.sqlite3`는 갱신하지 않습니다.
 
 ### 비용과 같은 해 다른 양도 기록
 
@@ -184,7 +192,7 @@ SQLite 파일은 기본적으로 암호화되지 않으며 PDF 원본과 분석 
 
 **인쇄 / PDF 저장**은 현재 화면의 입력값으로 출력하며 저장하지 않은 변경도 포함합니다. 기본 A4 세로 3장, 비용 상세 명세는 한 쪽에 최대 18건을 배치하며 긴 내용은 줄 수에 따라 추가 페이지로 나눕니다. 인쇄 설정은 A4, 배율 100%, 여백 없음, 브라우저 머리글/바닥글 해제를 사용하세요. 서식 자체의 쪽 표기는 원본을 유지하고 상단에 실제 출력 쪽수를 따로 표시합니다. 서명과 관리번호는 자동 생성하지 않습니다.
 
-서식 배경은 제공된 R08의 가상 인적정보·금액을 제거한 이미지이며 원본은 변경하지 않습니다. 재생성은 `.venv/bin/python scripts/build_filing_templates.py /path/to/B_검토본_R08.pdf`로 실행합니다. 검증은 `node --test tests/filing.cjs`와 `.venv/bin/python -m unittest tests.test_filing_storage`를 사용합니다. 기존 서버에서도 새 화면은 새로고침으로 사용할 수 있으며, 구버전 클라이언트의 신고서 필드 보존 처리는 서버 재시작 후 적용됩니다.
+서식 배경은 제공된 R08의 가상 인적정보·금액을 제거한 이미지이며 원본은 변경하지 않습니다. 재생성은 `.venv/bin/python backend/app/chapters/ch01_tax_housing/filing/build_filing_templates.py /path/to/B_검토본_R08.pdf`로 실행합니다. 검증은 `node --test tests/filing.cjs`와 `.venv/bin/python -m unittest tests.test_filing_storage`를 사용합니다. 기존 서버에서도 새 화면은 새로고침으로 사용할 수 있으며, 구버전 클라이언트의 신고서 필드 보존 처리는 서버 재시작 후 적용됩니다.
 
 사실확인서의 양도 정보에 양수인 성명·주민등록번호·양도인과의 관계를 입력하면 신고서 양수인란에 반영됩니다. 확인 완료된 양도계약서의 매수인이 한 명으로 식별되면 빈 사실확인서 항목에 자동 입력됩니다. 공동 매수인이나 식별 정보 충돌은 직접 확인해야 합니다. 신고서에서 별도로 수정한 값은 유지되며, 사실확인서 값과 다르면 확인사항에 표시됩니다. **사실확인서 값 사용**으로 다시 연결할 수 있습니다. 사실확인서 추가 정보와 신고서 변경은 상담 저장 또는 신고서 저장으로 보관하세요.
 

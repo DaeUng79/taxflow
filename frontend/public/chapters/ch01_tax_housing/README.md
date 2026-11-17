@@ -16,3 +16,6 @@
 메인의 바로가기 식별자는 `frontend/public/assets/js/missions.js`의 `practice[].id`와 `app.js`의 `practiceUrl()`을 사용합니다. 이 폴더 `app.js`의 `entryViews`는 식별자를 실제 탭으로 연결합니다.
 
 상담 데이터, 원본 PDF, 분석 결과와 모델 파일은 소스코드가 아닙니다. 폴더 정리나 테스트를 위해 삭제하거나 옮기지 마세요.
+
+조정대상지역 원본 이미지와 PDF 텍스트 추출 DB를 재생성하는 스크립트는 `backend/app/chapters/ch01_tax_housing/Adjustment_Areas/`에 있습니다. 서버 실행 시 자동으로 수행하지 않습니다.
+신고서 서식 이미지 생성 스크립트는 `backend/app/chapters/ch01_tax_housing/filing/build_filing_templates.py`에 있으며 생성 이미지는 이 폴더의 `filing/`에 저장됩니다.

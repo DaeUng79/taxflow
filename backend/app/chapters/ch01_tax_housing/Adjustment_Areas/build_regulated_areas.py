@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 import fitz
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[5]
 SOURCES = [('history', '조정대상지역 - 연혁별', 'history.pdf'), ('regions', '조정대상지역', 'regions.pdf')]
 path = ROOT / 'data/reference/regulated_areas.sqlite3'
 path.parent.mkdir(parents=True, exist_ok=True)
