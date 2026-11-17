@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('source', type=Path)
     args = parser.parse_args()
-    destination = Path(__file__).resolve().parents[1] / 'frontend/public/chapters/ch01_consultation/consultation/filing'
+    destination = Path(__file__).resolve().parents[1] / 'frontend/public/chapters/ch01_tax_housing/filing'
     marker = b'q\n0.0 0.0 595 841 re\nW\nn\n1 0 0 1 0 0 cm'
     with fitz.open(args.source) as document:
         if len(document) != 3:

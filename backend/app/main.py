@@ -6,21 +6,24 @@ import unicodedata
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, quote
 
+from .access import allowed_request, bind_address
 from .db import connect, initialize
 from .db.demo_notes import list_demo_notes
 from .db import mission_progress
-from .chapters.ch01_consultation import acquisition as acquisition_api
-from .chapters.ch01_consultation import resident as resident_api
-from .chapters.ch01_consultation import regulated_areas
-from .chapters.ch02_intake import api as intake_api
-from .chapters.ch02_intake import documents as document_api
+from .chapters.ch01_tax_housing import acquisition as acquisition_api
+from .chapters.ch01_tax_housing import resident as resident_api
+from .chapters.ch01_tax_housing import regulated_areas
+from .chapters.ch02_pdf_Parsing import api as intake_api
+from .chapters.ch02_pdf_Parsing import documents as document_api
 
 FRONTEND_ROOT = Path(__file__).resolve().parents[2] / "frontend" / "public"
 OLD_CHAPTER_PATHS = {
-    "01_consultation": "ch01_consultation",
-    "02_intake": "ch02_intake",
+    "01_consultation": "ch01_tax_housing",
+    "ch01_consultation": "ch01_tax_housing",
+    "02_intake": "ch02_pdf_Parsing",
+    "ch02_intake": "ch02_pdf_Parsing",
     "03_evidence": "ch03_evidence",
     "04_review": "ch04_review",
     "05_report": "ch05_report",
@@ -38,9 +41,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def write_consultation(self, record_id=None):
-        origin = self.headers.get("Origin")
-        host = self.headers.get("Host", "")
-        if host not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}") or (origin and origin not in (f"http://127.0.0.1:{self.server.server_port}", f"http://localhost:{self.server.server_port}")) or self.headers.get_content_type() != "application/json":
+        if not allowed_request(self) or self.headers.get_content_type() != "application/json":
             self.send_error(403)
             return
         try:
@@ -79,10 +80,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json({"id": record_id})
 
     def address_notice(self, record_id):
-        host = self.headers.get('Host', '')
-        origin = self.headers.get('Origin')
-        allowed = (f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}')
-        if host not in allowed or (origin and origin not in tuple('http://' + h for h in allowed)) or self.headers.get_content_type() != 'application/json':
+        if not allowed_request(self) or self.headers.get_content_type() != 'application/json':
             self.send_error(403); return
         try:
             length = int(self.headers.get('Content-Length', '0'))
@@ -133,10 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(404)
 
     def intake_request(self):
-        host = self.headers.get("Host", "")
-        origin = self.headers.get("Origin")
-        allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
-        if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)):
+        if not allowed_request(self):
             self.send_error(403)
             return
         render = self.path.endswith("/render")
@@ -173,10 +168,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def write_mission_progress(self, mission_id):
-        host = self.headers.get("Host", "")
-        origin = self.headers.get("Origin")
-        allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
-        if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)) or self.headers.get_content_type() != "application/json":
+        if not allowed_request(self) or self.headers.get_content_type() != 'application/json':
             self.send_error(403)
             return
         try:
@@ -214,10 +206,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(404)
 
     def do_DELETE(self):
-        host = self.headers.get("Host", "")
-        origin = self.headers.get("Origin")
-        allowed_hosts = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
-        if host not in allowed_hosts or (origin and origin not in tuple(f"http://{value}" for value in allowed_hosts)) or self.headers.get_content_type() != "application/json":
+        if not allowed_request(self) or self.headers.get_content_type() != 'application/json':
             self.send_error(403)
             return
         parts = urlsplit(self.path).path.strip("/").split("/")
@@ -244,7 +233,10 @@ class Handler(SimpleHTTPRequestHandler):
         for old_name, new_name in OLD_CHAPTER_PATHS.items():
             old_prefix = f"/chapters/{old_name}"
             if path == old_prefix or path.startswith(old_prefix + "/"):
-                location = f"/chapters/{new_name}{path[len(old_prefix):]}"
+                suffix = path[len(old_prefix):]
+                if new_name == "ch01_tax_housing" and (suffix == "/consultation" or suffix.startswith("/consultation/")):
+                    suffix = suffix[len("/consultation"):] or "/"
+                location = f"/chapters/{quote(new_name)}{suffix}"
                 if requested.query:
                     location += f"?{requested.query}"
                 self.send_response(302)
@@ -253,7 +245,42 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 return
-        if path.startswith("/api/") and self.headers.get("Host", "") not in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"):
+        # Former workspace URLs retain their suffix and query after moving files up.
+        old_workspace = "/chapters/ch01_tax_housing/consultation"
+        if path == old_workspace or path.startswith(old_workspace + "/"):
+            suffix = path[len(old_workspace):]
+            location = "/chapters/ch01_tax_housing" + (suffix or "/")
+            if requested.query:
+                location += "?" + requested.query
+            self.send_response(302)
+            self.send_header("Location", location)
+            self.send_header("Content-Length", "0")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
+        # Preserve bookmarked regional reference URLs after moving the directory.
+        old_reference = "/reference/"
+        if path.startswith(old_reference):
+            location = "/chapters/ch01_tax_housing/Adjustment_Areas/" + path[len(old_reference):]
+            if requested.query:
+                location += "?" + requested.query
+            self.send_response(302)
+            self.send_header("Location", location)
+            self.send_header("Content-Length", "0")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
+        # Retired placeholder chapters now lead to the corresponding build guides.
+        retired_guides = {"ch03_evidence": 7, "ch04_review": 8, "ch05_report": 9}
+        for chapter, mission in retired_guides.items():
+            if path in (f"/chapters/{chapter}", f"/chapters/{chapter}/", f"/chapters/{chapter}/index.html"):
+                self.send_response(302)
+                self.send_header("Location", f"/index.html#mission-{mission}")
+                self.send_header("Content-Length", "0")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                return
+        if path.startswith("/api/") and not allowed_request(self):
             self.send_error(403)
             return
         parts = path.strip("/").split("/")
@@ -296,10 +323,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def settlement_confirmation(self, record_id, write=False):
         if write:
-            host = self.headers.get("Host", "")
-            origin = self.headers.get("Origin")
-            allowed = (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
-            if host not in allowed or (origin and origin not in tuple(f"http://{h}" for h in allowed)) or self.headers.get_content_type() != "application/json":
+            if not allowed_request(self) or self.headers.get_content_type() != 'application/json':
                 self.send_error(403)
                 return
             try:
@@ -332,8 +356,12 @@ def main() -> None:
     mission_progress.initialize()
     port = int(os.environ.get("PORT", "8765"))
     handler = partial(Handler, directory=str(FRONTEND_ROOT))
-    server = ThreadingHTTPServer(("127.0.0.1", port), handler)
-    print(f"TAXFLOW http://127.0.0.1:{port}/", flush=True)
+    address = bind_address(os.environ.get("TAXFLOW_LAN_IP", ""))
+    server = ThreadingHTTPServer((address, port), handler)
+    server.taxflow_bind_address = address
+    print(f"TAXFLOW http://{address}:{port}/", flush=True)
+    if address != "127.0.0.1":
+        print("공유 네트워크 접속 활성화: 접속자는 상담과 서류를 조회·수정할 수 있습니다.", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

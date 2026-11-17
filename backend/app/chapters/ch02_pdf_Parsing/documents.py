@@ -5,6 +5,7 @@ import hashlib
 import json
 from urllib.parse import parse_qs, urlsplit
 
+from ...access import allowed_request
 from ...db import connect
 from . import api
 
@@ -15,10 +16,7 @@ def handle(handler):
     path = urlsplit(handler.path)
     parts = path.path.strip('/').split('/')
     method = handler.command
-    host = handler.headers.get('Host', '')
-    allowed = (f'127.0.0.1:{handler.server.server_port}', f'localhost:{handler.server.server_port}')
-    origin = handler.headers.get('Origin')
-    if host not in allowed or (origin and origin not in tuple('http://' + h for h in allowed)):
+    if not allowed_request(handler):
         handler.send_error(403); return
     try:
         if method == 'GET' and parts == ['api', 'documents']:

@@ -5,10 +5,11 @@ import hashlib
 import json
 from urllib.parse import parse_qs, urlsplit
 
+from ...access import allowed_request
 from ...db import connect
 from ...db.payment_dates import add_payment_dates
-from ..ch02_intake import api as vision
-from ..ch02_intake import documents as shared_documents
+from ..ch02_pdf_Parsing import api as vision
+from ..ch02_pdf_Parsing import documents as shared_documents
 
 
 def handle(handler):
@@ -23,10 +24,7 @@ def handle(handler):
         return
     document_type = values[0]
     result_table = {'acquisition_contract': 'acquisition_results', 'transfer_contract': 'transfer_results'}[document_type]
-    host = handler.headers.get('Host', '')
-    allowed = (f'127.0.0.1:{handler.server.server_port}', f'localhost:{handler.server.server_port}')
-    origin = handler.headers.get('Origin')
-    if host not in allowed or (origin and origin not in tuple('http://' + h for h in allowed)):
+    if not allowed_request(handler):
         handler.send_error(403)
         return
     try:

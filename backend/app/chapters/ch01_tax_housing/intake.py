@@ -5,8 +5,8 @@ import hashlib
 import json
 import re
 from ...db import connect
-from ..ch02_intake import api as vision
-from ..ch02_intake.documents import read_json, validate_pages
+from ..ch02_pdf_Parsing import api as vision
+from ..ch02_pdf_Parsing.documents import read_json, validate_pages
 
 
 def create(handler, document_type):

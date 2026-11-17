@@ -6,7 +6,7 @@ class Element {
 const elements={}; const get=id=>elements[id] ||= new Element();
 const context={document:{getElementById:get,createElement:t=>new Element(t)},location:{search:'?request=token&acquisition_year=2010&transfer_year=2020',origin:'http://test'},window:{parent:{postMessage:msg=>context.lastMessage=msg},addEventListener:()=>{}},URLSearchParams,Date,setInterval,clearInterval,setTimeout,clearTimeout,console,paymentUtils:{formatDate:s=>/^\d{4}\.\d{2}\.\d{2}\.$/.test(s)?s:null}};
 vm.createContext(context);
-vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_consultation/consultation/resident.js','utf8'),context);
+vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/resident.js','utf8'),context);
 vm.runInContext(`images=['image']; pdf='pdf'; pages=[{name:'테스트',history:[{address:'이전연도',date:'2009.01.01.',reason:'전입'},{address:'대상',date:'2010.01.01.',reason:'전입'},{address:'도로명 주소',date:'2011.02.01.',reason:'도로명주소'},{address:'공백 도로명',date:'2012.02.01.',reason:'도로명 주소'},{address:'정정주소',date:'2010.02.01.',reason:'정정'},{address:'다른연도',date:'2015.01.01.',reason:'전입'},{address:'양도연도',date:'2020.01.01.',reason:'전입'}]}]; show();`,context);
 const texts=el=>[el.textContent,el.value,...el.children.flatMap(texts)];
 let rendered=texts(get('result'));

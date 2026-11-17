@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const model=require('../frontend/public/chapters/ch01_consultation/consultation/filing-model.js');
-const caseB=require('../frontend/public/chapters/ch01_consultation/consultation/case-b.js');
+const model=require('../frontend/public/chapters/ch01_tax_housing/filing-model.js');
+const caseB=require('../frontend/public/chapters/ch01_tax_housing/case-b.js');
 const data=()=>({...caseB,capitalGainsReviewJson:JSON.stringify({treatment:'oneHome',rate:'general'}),filingDraftJson:JSON.stringify({version:1,fields:{filingDate:'2026-04-10',rateCode:'1-10',assetCode:'고가주택 (2)'},expenses:{}})});
 test('R08 case B reconciles all three forms',()=>{const m=model.build(data());assert.deepEqual(m.errors,[]);assert.equal(m.pageCount,3);for(const [key,value] of Object.entries({transfer:1300000000,acquisition:650000000,taxableGain:50000000,deduction:4000000,income:46000000,base:43500000,assessed:5265000,payable:5265000,purchase:650000000,expenseTotal:0}))assert.equal(m.values[key],value,key);});
 test('acquisition incidental expenses move to acquisition total without double counting',()=>{const d=data(),row={kind:'취득 관련',description:'취득세',amount:'10000000',evidence:'있음'};d.expensePresence='있음';d.expenses='10000000';d.expenseItemsJson=JSON.stringify([row]);const f=JSON.parse(d.filingDraftJson);f.expenses[model.fingerprint(row,0)]={code:'112'};d.filingDraftJson=JSON.stringify(f);const m=model.build(d);assert.deepEqual(m.errors,[]);assert.equal(m.values.acquisition,660000000);assert.equal(m.values.expenses,0);assert.equal(m.values.gain,640000000);assert.equal(m.values.acqSubtotal,m.values.acquisition);assert.equal(m.pageCount,4);});

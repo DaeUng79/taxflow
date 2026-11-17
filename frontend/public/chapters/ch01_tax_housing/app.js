@@ -733,5 +733,16 @@
   const updateScrollHeader = () => document.body.classList.toggle('is-scrolled', window.scrollY > 80);
   window.addEventListener('scroll', updateScrollHeader, {passive: true});
   updateScrollHeader();
-  clear(); refresh().catch(e => { records.textContent = e.message; });
+  clear();
+  const entryViews = {
+    documents: 'tab-consultation', facts: 'tab-consultation',
+    settlement: 'tab-settlement', regions: 'tab-regulated',
+    review: 'tab-capital-gains', filing: 'tab-filing'
+  };
+  const entryView = new URLSearchParams(location.search).get('view');
+  if (Object.prototype.hasOwnProperty.call(entryViews, entryView)) {
+    activateTab(document.getElementById(entryViews[entryView]));
+    if (entryView === 'facts') showConsultation();
+  }
+  refresh().catch(e => { records.textContent = e.message; });
 })();

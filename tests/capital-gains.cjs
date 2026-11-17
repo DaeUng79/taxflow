@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const {test}=require('node:test');
-const tax=require('../frontend/public/chapters/ch01_consultation/consultation/capital-gains.js');
+const tax=require('../frontend/public/chapters/ch01_tax_housing/capital-gains.js');
 const facts={taxpayerName:'검증용',resident:'예',ownership:'단독 소유',propertyType:'아파트',acquisitionMethod:'매매',acquisitionBalanceDate:'2006-05-07',acquisitionRegistrationDate:'2006-05-07',transferBalanceDate:'2022-01-03',transferRegistrationDate:'2022-01-03',acquisitionPrice:'800000000',transferPrice:'1500000000',expenses:'30000000',expensePresence:'있음',livedThere:'예',moveInDate:'2006-05-07',moveOutDate:'2022-01-03',registrationMatch:'예',otherHomes:'없음',otherRights:'없음',otherTransfers:'없음',transferStatus:'양도 완료'};
 const calculate=(data={},review={}) => tax.calculate({...facts,...data},{treatment:'taxable',rate:'general',...review});
 const ready=r => { assert.deepEqual(r.errors,[]); return r; };

@@ -6,17 +6,15 @@ import hashlib
 import json
 import re
 from urllib.parse import parse_qs, urlsplit
+from ...access import allowed_request
 from ...db import connect
-from ..ch02_intake import api
-from ..ch02_intake.documents import read_json, validate_pages
+from ..ch02_pdf_Parsing import api
+from ..ch02_pdf_Parsing.documents import read_json, validate_pages
 
 
 def handle(handler):
     req = urlsplit(handler.path)
-    host = handler.headers.get('Host', '')
-    allowed = (f'127.0.0.1:{handler.server.server_port}', f'localhost:{handler.server.server_port}')
-    origin = handler.headers.get('Origin')
-    if host not in allowed or (origin and origin not in tuple('http://' + h for h in allowed)):
+    if not allowed_request(handler):
         handler.send_error(403); return
     try:
         if handler.command == 'POST' and req.path == '/api/resident/render':
