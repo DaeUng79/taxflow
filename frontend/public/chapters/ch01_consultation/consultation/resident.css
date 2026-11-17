@@ -1,0 +1,25 @@
+/* 초본 원본과 주소 이력을 한 화면에서 대조합니다. */
+main{max-width:1500px}
+.columns{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);align-items:start}
+.panel{padding:20px;min-width:0}
+.panel h2{margin:0;font-size:17px}
+.resident-info{margin:8px 0;color:#716b7b;font-size:13px;line-height:1.6}
+#year-filter{display:inline-block;margin:4px 0 12px;padding:6px 10px;border-radius:6px;background:#f3eef8;color:#624c79;font-weight:650}
+#result{display:grid;gap:10px}
+.resident-name,.history-row{padding:14px;border:1px solid #e6e0ec;border-radius:10px;background:#faf9fc}
+.history-row{background:#fff}
+.resident-name label,.history-fields label{display:grid;gap:5px;min-width:0;color:#716b7b;font-size:12px;font-weight:600}
+.resident-name input,.history-fields input{width:100%;min-width:0;padding:9px 10px;border:1px solid #ded9e5;border-radius:7px;color:#302d3b;font:14px/1.4 system-ui;background:#fff}
+.history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.history-head strong{color:#403449;font-size:14px}
+.history-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.history-actions button{padding:7px 9px;font-size:12px;white-space:nowrap}
+.apply-date{background:#eee8f7;color:#5b4081}
+.history-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.history-address{grid-column:1 / -1}
+#add-row{margin-top:12px}
+.resident-actions{display:flex;gap:10px;flex-wrap:wrap;margin:0}
+@media(max-width:900px){.columns{grid-template-columns:1fr}.preview{height:55vh;min-height:300px}}
+@media(max-width:480px){main{padding:16px}.panel{padding:14px}.history-fields{grid-template-columns:1fr}.history-address{grid-column:auto}.history-actions button{flex:1}.history-actions{width:100%}}
+
+.history-feedback{margin:10px 0 0;font-size:12px;line-height:1.5;color:#665576}.history-feedback:empty{display:none}.history-feedback.success{color:#246842}.history-feedback.error{color:#a33939}

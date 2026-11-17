@@ -30,6 +30,10 @@ def handle(handler):
         handler.send_error(403)
         return
     try:
+        if method == 'POST' and parts == ['api', 'contracts', 'intake']:
+            from . import intake
+            intake.create(handler, document_type)
+            return
         if method == 'POST' and parts == ['api', 'contracts', 'render']:
             if handler.headers.get_content_type() != 'application/pdf':
                 raise ValueError('PDF 파일이 필요합니다.')
@@ -107,6 +111,7 @@ def handle(handler):
                         VALUES(?,?,?,?) ON CONFLICT(document_id) DO UPDATE SET model=excluded.model,
                         pages_json=excluded.pages_json, confirmed=excluded.confirmed, updated_at=CURRENT_TIMESTAMP''',
                         (document_id, model, json.dumps(pages, ensure_ascii=False), int(confirmed)))
+                    store_property_facts(db, document_id, pages)
                     db.execute('UPDATE documents SET status=? WHERE id=?', ('confirmed' if confirmed else 'review_needed', document_id))
                 handler.send_json({'saved': True})
                 return
@@ -156,6 +161,7 @@ def save_contract(handler, document_type):
                 created_at=CURRENT_TIMESTAMP WHERE id=?""", (filename, page_count, digest, document_id))
             result_table = {'acquisition_contract': 'acquisition_results', 'transfer_contract': 'transfer_results'}[document_type]
             db.execute(f'DELETE FROM {result_table} WHERE document_id=?', (document_id,))
+            db.execute('DELETE FROM contract_property_facts WHERE document_id=?', (document_id,))
             db.execute('DELETE FROM extraction_runs WHERE document_id=?', (document_id,))
             db.execute('DELETE FROM document_pages WHERE document_id=?', (document_id,))
         db.execute("""INSERT INTO document_files(document_id,content,size_bytes) VALUES(?,?,?)
@@ -168,3 +174,19 @@ def save_contract(handler, document_type):
         db.execute('UPDATE consultations SET data=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',
                    (json.dumps(consultation_data, ensure_ascii=False), cid))
     handler.send_json({'id': document_id, 'page_count': page_count, 'sha256': digest})
+
+
+def store_property_facts(db, document_id, pages):
+    rows = []
+    for page_number, page in enumerate(pages, 1):
+        properties = page.get('property', [])
+        if not isinstance(properties, list):
+            raise ValueError('부동산 정보는 항목 배열이어야 합니다.')
+        for ordinal, row in enumerate(properties):
+            if not isinstance(row, dict) or not all(isinstance(row.get(k), str) for k in ('label', 'value')):
+                raise ValueError('부동산 정보의 항목명과 값을 확인하세요.')
+            label = row['label'].strip()
+            category = 'land' if label.startswith('토지') else 'building' if label.startswith('건물') else 'other'
+            rows.append((document_id, page_number, ordinal, category, label, row['value']))
+    db.execute('DELETE FROM contract_property_facts WHERE document_id=?', (document_id,))
+    db.executemany('INSERT INTO contract_property_facts VALUES(?,?,?,?,?,?)', rows)

@@ -3,9 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>양도소득세 상담서 · TAXFLOW</title>
-  <link rel="stylesheet" href="report.css?v=4">
-  <script src="report.js?v=7" defer></script>
+  <title>양도소득세 신고용 사실확인서 · TAXFLOW</title>
+  <link rel="stylesheet" href="report.css?v=13">
+  <script src="/assets/js/payment-utils.js?v=1" defer></script>
+  <script src="resident-match.js?v=6" defer></script>
+  <script src="regulated-match.js?v=1" defer></script>
+  <script src="residence-period.js?v=7" defer></script>
+  <script src="exemption-review.js?v=7" defer></script>
+  <script src="report.js?v=22" defer></script>
 </head>
 <body>
   <div class="toolbar">
@@ -13,17 +18,14 @@
     <span id="print-help" role="status">저장된 상담을 불러오는 중입니다.</span>
     <button id="print-report" type="button" disabled>인쇄 · PDF 저장</button>
   </div>
-  <main class="sheet" aria-label="양도소득세 상담서">
+  <main class="sheet" aria-label="양도소득세 신고용 사실확인서">
     <header class="report-header">
-      <div class="report-brand">TAXFLOW <span>상담 기록</span></div>
-      <h1>양도소득세 상담서</h1>
-      <div class="report-meta"><span id="report-name">납세자 확인 중</span><span id="report-number"></span><span id="report-date"></span></div>
+      <div class="report-brand">TAXFLOW <div class="report-dates"><span id="report-date"></span><span id="report-printed"></span></div></div>
+      <h1>양도소득세 신고용 사실확인서</h1>
     </header>
     <div id="report-sections"></div>
     <footer class="report-footer">
-      <p>※ 이 상담서는 상담 시 입력한 내용과 서류 상태를 정리한 것입니다. 기재 내용은 제출 자료와 추가 확인에 따라 달라질 수 있습니다.</p>
-      <p>※ 세액 계산, 비과세 적용 및 신고 완료 여부를 나타내지 않습니다.</p>
-      <div><strong>TAXFLOW</strong><span id="report-printed"></span></div>
+      <div class="report-signature"><span class="signature-intro">위 내용을 확인합니다.</span><span>확인일: ________년 ______월 ______일</span><span>신고자: <span id="signature-name"></span> <span class="signature-space">(서명 또는 인)</span></span></div>
     </footer>
   </main>
 </body>

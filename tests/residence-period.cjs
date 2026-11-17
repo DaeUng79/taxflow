@@ -1,0 +1,16 @@
+'use strict';
+const assert = require('node:assert/strict');
+const {residencePeriod} = require('../frontend/public/chapters/ch01_consultation/consultation/residence-period.js');
+const format = value => /^\d{4}\.\d{2}\.\d{2}\.$/.test(value) ? value : null;
+assert.equal(residencePeriod('2010.12.28.', '2017.05.02.', format).message, '2010.12.28. ~ 2017.05.02. · 6년 4개월 4일');
+assert.match(residencePeriod('2020.02.29.', '2022.02.28.', format).message, /2년$/);
+assert.match(residencePeriod('2023.01.31.', '2023.03.01.', format).message, /1개월 1일$/);
+assert.match(residencePeriod('2024.01.01.', '2024.01.01.', format).message, /0일$/);
+assert.match(residencePeriod('2024.02.01.', '2024.01.01.', format).message, /빠를 수 없습니다/);
+assert.match(residencePeriod('2024.01.01.', '', format).message, /입주일과 퇴거일/);
+assert.match(residencePeriod('2024', '2024.01.01.', format).message, /올바른/);
+const holding = {start:'취득 잔금일',end:'양도 잔금일',period:'보유기간'};
+assert.equal(residencePeriod('2010.12.30.','2021.10.29.',format,holding).message, '2010.12.30. ~ 2021.10.29. · 10년 9개월 29일');
+assert.match(residencePeriod('', '2024.01.01.', format, holding).message, /취득 잔금일과 양도 잔금일/);
+assert.match(residencePeriod('2024.02.01.', '2024.01.01.', format, holding).message, /양도 잔금일은 취득 잔금일보다 빠를 수 없습니다/);
+console.log('거주기간 계산 및 누락·역순 확인 통과');

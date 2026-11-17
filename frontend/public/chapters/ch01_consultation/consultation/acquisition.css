@@ -39,3 +39,10 @@ header .notice{margin:10px 0 0;line-height:1.5}.result-help{margin:5px 0 0;color
 /* 간결한 머리글과 저장 확인 안내 */
 main{padding-top:22px}header{align-items:flex-start}.eyebrow{margin:0 0 4px}.toolbar{margin-top:16px}.header-actions button{background:#fff;border:1px solid #8c79aa;color:#514267}.header-actions button:hover{background:#eee8f6;border-color:#66509b}.header-actions button:focus-visible{outline:2px solid #66509b;outline-offset:2px}
 #review-confirmation{width:min(400px,calc(100% - 36px));padding:26px;border:1px solid #d8cde4;border-radius:8px;background:#fff;color:#30283e;box-shadow:0 18px 50px #271a3e38}#review-confirmation::backdrop{background:rgba(29,22,38,.45)}#review-confirmation h2{margin:0;font-size:18px;line-height:1.5}.review-confirmation-actions{display:flex;justify-content:flex-end;margin-top:24px}.review-confirmation-actions button{min-width:80px}@media(max-width:800px){main{padding-top:18px}}
+
+.consultation-review{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:20px;padding:16px 20px;background:#fff;border:1px solid #d9cce7;border-radius:12px;box-shadow:0 -4px 20px #332c3d14}.consultation-review[hidden]{display:none}.consultation-review strong{font-size:14px}.consultation-review p{margin:5px 0;font-size:12px;color:#756783}.consultation-review label{font-size:12px}.consultation-review input{display:block;margin-top:5px;padding:9px;border:1px solid #d9cce7;border-radius:6px}.consultation-review button{margin-left:auto}#review-save-status{flex-basis:100%;white-space:pre-line}#review-save-status:empty{display:none}
+
+.contract-date-manual{display:block;margin:16px 0 0;padding:12px;border:1px solid #e7c99f;border-radius:8px;background:#fff9f0;color:#714d22;font-size:12px;font-weight:700}.contract-date-manual small{display:block;margin-top:6px;font-weight:400;line-height:1.6;color:#806747}.contract-date-manual input{margin-top:8px}
+
+
+.contract-date-candidate{display:block;margin-top:6px;color:#9a510e;font-size:11px;line-height:1.5}

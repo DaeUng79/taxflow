@@ -78,3 +78,20 @@ CREATE TABLE IF NOT EXISTS settlement_confirmations (
     data TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Explicit land/building rows, preserving page and original labels/units.
+CREATE TABLE IF NOT EXISTS contract_property_facts (
+    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    page_number INTEGER NOT NULL,
+    ordinal INTEGER NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('land','building','other')),
+    label TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY(document_id,page_number,ordinal)
+);
+
+CREATE TABLE IF NOT EXISTS contract_intake_requests (
+ token TEXT PRIMARY KEY,
+ consultation_id INTEGER NOT NULL REFERENCES consultations(id) ON DELETE CASCADE,
+ sha256 TEXT NOT NULL
+);

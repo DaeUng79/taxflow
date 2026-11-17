@@ -214,9 +214,9 @@ async function runAnalysis() {
   clearInterval(timer); updateElapsed();
   results = nextResults; pendingResults = null; index = 0;
   const warnings = [];
-  if (contractDateWarning) warnings.push('계약금의 계약일자가 불명확합니다. 원본을 확인해 입력해 주세요.');
+  if (contractDateWarning) warnings.push('계약 체결일이 불명확합니다. 원본을 확인해 입력해 주세요.');
   if (amountWarnings.size) warnings.push(`${[...amountWarnings].join(', ')} 금액을 원문과 대조해 주세요.`);
-  if (dateWarning) warnings.push('일부 지급일이 중복되어 확인이 필요합니다.');
+  if (dateWarning) warnings.push('일부 지급일이 불명확하거나 중복되어 확인이 필요합니다.');
   $('status').textContent = warnings.length ? warnings.join(' ') : `${model.toUpperCase()} 모델의 구조화이 완료되었습니다. 금액과 지급일을 원본과 대조하세요.`;
   try { await saveAnalysis('completed', model, results.map(JSON.parse)); } catch (error) { runId = null; $('status').textContent = `분석은 완료됐지만 DB 저장에 실패했습니다: ${error.message} JSON 저장으로 결과를 보관하세요.`; }
   busy = false; show();

@@ -2,6 +2,7 @@
 
 import json
 import os
+import unicodedata
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,6 +12,8 @@ from .db import connect, initialize
 from .db.demo_notes import list_demo_notes
 from .db import mission_progress
 from .chapters.ch01_consultation import acquisition as acquisition_api
+from .chapters.ch01_consultation import resident as resident_api
+from .chapters.ch01_consultation import regulated_areas
 from .chapters.ch02_intake import api as intake_api
 from .chapters.ch02_intake import documents as document_api
 
@@ -61,7 +64,12 @@ class Handler(SimpleHTTPRequestHandler):
                 existing = connection.execute("SELECT data FROM consultations WHERE id=?", (record_id,)).fetchone()
                 if existing:
                     previous = json.loads(existing["data"])
-                    for field in ("consultationResult", "nextActions"):
+                    # The notice endpoint owns this marker; stale forms must not overwrite it.
+                    if '_addressNoticeDismissed' in previous:
+                        data['_addressNoticeDismissed'] = previous['_addressNoticeDismissed']
+                    else:
+                        data.pop('_addressNoticeDismissed', None)
+                    for field in ("consultationResult", "nextActions", "taxpayerAddress", "landDetails", "buildingDetails", "landCategory", "landArea", "buildingUse", "buildingArea", "expensePresence", "expenseItemsJson", "otherTransferItemsJson", "transferReviewChecksJson", "_fieldSources", "capitalGainsReviewJson", "filingDraftJson", "buyerName", "buyerId", "buyerRelationship"):
                         if field in previous and field not in data:
                             data[field] = previous[field]
                 cursor = connection.execute("UPDATE consultations SET taxpayer_name=?, consulted_at=?, data=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False), record_id))
@@ -70,7 +78,49 @@ class Handler(SimpleHTTPRequestHandler):
                     return
         self.send_json({"id": record_id})
 
+    def address_notice(self, record_id):
+        host = self.headers.get('Host', '')
+        origin = self.headers.get('Origin')
+        allowed = (f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}')
+        if host not in allowed or (origin and origin not in tuple('http://' + h for h in allowed)) or self.headers.get_content_type() != 'application/json':
+            self.send_error(403); return
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            if not 0 < length <= 24000: raise ValueError()
+            payload = json.loads(self.rfile.read(length))
+            action, marker, digest = payload.get('action'), payload.get('marker'), payload.get('sha256')
+            if action not in ('dismiss', 'apply') or not isinstance(marker,str) or not 0 < len(marker) <= 16000 or not isinstance(digest,str) or len(digest) != 64: raise ValueError()
+            if action == 'apply' and (not isinstance(payload.get('address'),str) or not 0 < len(payload['address'].strip()) <= 2000): raise ValueError()
+        except (ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+            self.send_json_error('주소 안내 선택을 확인해 주세요.',400); return
+        with connect() as connection:
+            connection.execute('BEGIN IMMEDIATE')
+            row=connection.execute('SELECT data FROM consultations WHERE id=?',(record_id,)).fetchone()
+            document=connection.execute("SELECT sha256 FROM documents WHERE consultation_id=? AND document_type='transfer_contract' ORDER BY id DESC LIMIT 1",(record_id,)).fetchone()
+            if not row or not document or document['sha256'] != digest:
+                self.send_json_error('상담이나 계약서가 변경되었습니다. 다시 불러와 주세요.',409); return
+            data=json.loads(row['data'])
+            if action == 'apply':
+                data['address']=payload['address'].strip(); data['addressDetail']=''; data.pop('_addressNoticeDismissed',None)
+                try:
+                    sources = json.loads(data.get('_fieldSources') or '{}')
+                    if not isinstance(sources, dict): sources = {}
+                except (ValueError, TypeError):
+                    sources = {}
+                sources['address'] = {'source':'양도', 'value':' '.join(unicodedata.normalize('NFKC', data['address']).split())}
+                data['_fieldSources'] = json.dumps(sources, ensure_ascii=False)
+            else:
+                data['_addressNoticeDismissed']=marker
+            connection.execute('UPDATE consultations SET data=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',(json.dumps(data,ensure_ascii=False),record_id))
+        self.send_json({'saved':True})
+
     def do_POST(self):
+        parts = urlsplit(self.path).path.strip('/').split('/')
+        if len(parts) == 4 and parts[:2] == ['api', 'consultations'] and parts[2].isdigit() and parts[3] == 'address-notice':
+            self.address_notice(int(parts[2])); return
+        if urlsplit(self.path).path.startswith('/api/resident/'):
+            resident_api.handle(self)
+            return
         if urlsplit(self.path).path.startswith(("/api/acquisition/", "/api/contracts/")):
             acquisition_api.handle(self)
         elif urlsplit(self.path).path == "/api/documents" or urlsplit(self.path).path.startswith("/api/documents/"):
@@ -186,6 +236,9 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json({"deleted": True})
 
     def do_GET(self) -> None:
+        if urlsplit(self.path).path.startswith('/api/resident/'):
+            resident_api.handle(self)
+            return
         requested = urlsplit(self.path)
         path = requested.path
         for old_name, new_name in OLD_CHAPTER_PATHS.items():
@@ -204,7 +257,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(403)
             return
         parts = path.strip("/").split("/")
-        if len(parts) == 4 and parts[:2] == ["api", "consultations"] and parts[2].isdigit() and parts[3] == "settlement":
+        if path == "/api/regulated-areas":
+            regulated_areas.handle(self)
+        elif len(parts) == 4 and parts[:2] == ["api", "consultations"] and parts[2].isdigit() and parts[3] == "settlement":
             self.settlement_confirmation(int(parts[2]))
         elif path.startswith(("/api/acquisition/", "/api/contracts/")):
             acquisition_api.handle(self)

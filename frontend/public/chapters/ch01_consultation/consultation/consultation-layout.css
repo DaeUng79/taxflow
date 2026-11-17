@@ -1,0 +1,91 @@
+/* Consultation layout, from documents through follow-up questions. */
+body.consultation-page .form-panel{padding:26px;background:#f9f7fb}
+body.consultation-page .form-toolbar{padding:0 0 20px;margin-bottom:18px}
+body.consultation-page .consultation-jump{display:flex;align-items:center;gap:7px;overflow-x:auto;padding:0 0 17px;scrollbar-width:thin}
+body.consultation-page .consultation-jump span{flex:none;font-size:11px;font-weight:700;color:#8a7d93;margin-right:2px}
+body.consultation-page .consultation-jump a{flex:none;padding:7px 10px;border:1px solid #e3dcea;border-radius:20px;background:#fff;color:#665576;font-size:11px;font-weight:650}
+body.consultation-page .consultation-jump a:hover,body.consultation-page .consultation-jump a:focus-visible{border-color:#8967ab;color:#62428a;background:#f5effa}
+body.consultation-page .question-group{scroll-margin-top:165px;margin:0 0 14px;padding:21px;border:1px solid #e9e3ee;border-radius:12px;background:#fff}
+body.consultation-page .question-group h2{font-size:15px;margin:0 0 18px}
+body.consultation-page .question-group .evidence-heading span{display:block;margin:6px 0 0;color:#81758b;font-size:12px}
+body.consultation-page .evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+body.consultation-page .evidence-grid>label{min-width:0;padding:14px;border:1px solid #ebe5ef;border-radius:10px;background:#fcfbfd}
+body.consultation-page .evidence-grid .contract-action{padding:10px;background:#f6f1fa}
+body.consultation-page .evidence-grid .contract-action button{width:100%}
+body.consultation-page .registered-documents li span{overflow-wrap:anywhere}
+body.consultation-page #section-documents{border-color:#ded0ec;background:#fff}
+body.consultation-page #section-notes .evidence-grid>label{padding:0;border:0;background:transparent}
+body.consultation-page .field-grid label{min-width:0}
+body.consultation-page .form-panel input:focus-visible,body.consultation-page .form-panel select:focus-visible,body.consultation-page .form-panel textarea:focus-visible{outline:2px solid #9879b9;outline-offset:2px}
+@media(max-width:560px){body.consultation-page .form-panel{padding:16px}body.consultation-page .question-group{padding:16px}body.consultation-page .evidence-grid{grid-template-columns:1fr}body.consultation-page .consultation-jump{margin:0 -2px}body.consultation-page .form-toolbar .form-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:7px}body.consultation-page .form-toolbar .form-actions button{width:100%}}
+
+@media(min-width:561px){body.consultation-page #section-documents .evidence-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}body.consultation-page #section-documents .evidence-grid>label{padding:10px}}
+body.consultation-page .taxpayer-grid label:has([name=taxpayerAddress]){grid-column:1 / -1}
+body.consultation-page .consultation-field-note{font-weight:400;color:#81758b;font-size:11px}
+
+/* Keep previously stored registration dates without showing the field on the consultation screen. */
+body.consultation-page #section-purchase label[hidden]{display:none}
+body.consultation-page #section-purchase .contract-comparison.match{display:none}
+@media(min-width:841px){body.consultation-page #section-purchase .field-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.consultation-autofill-status:not(:empty){white-space:pre-line;margin:0 0 16px;padding:12px 14px;border-radius:8px;background:#f2ebf9;color:#604286;font-size:12px;line-height:1.65;overflow-wrap:anywhere}.consultation-autofill-status:empty{display:none}.seller-comparison{display:block;margin-top:6px;color:#a34d1c;font-size:11px;font-weight:500;line-height:1.5;overflow-wrap:anywhere}.seller-comparison:empty{display:none}
+
+body.consultation-page #section-sale label[hidden]{display:none}
+body.consultation-page #section-sale .contract-comparison.match{display:none}
+@media(min-width:841px){body.consultation-page #section-sale .field-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+body.consultation-page .seller-apply{display:inline;width:auto;margin:0;padding:1px 3px;border:0;border-radius:3px;background:transparent;color:#65418e;font-size:11px;font-weight:700;text-decoration:underline;text-underline-offset:2px}body.consultation-page .seller-apply:focus-visible{outline:2px solid #7956a5;outline-offset:2px}
+
+/* 첫 줄에는 주택 주소·종류·건물 용도, 둘째 줄에는 나머지 정보를 배치합니다. */
+@media(min-width:841px){body.consultation-page .property-grid{grid-template-columns:repeat(4,minmax(0,1fr))}body.consultation-page .property-grid label:has([name=address]){grid-column:span 2}}
+@media(min-width:561px) and (max-width:840px){body.consultation-page .property-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.consultation-page .property-grid label:has([name=address]){grid-column:1 / -1}}
+
+/* 실제 거주 정보 네 항목을 넓은 화면에서 한 줄에 표시합니다. */
+@media(min-width:841px){body.consultation-page #section-residence .field-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* 첫 화면은 서류 등록부터 시작합니다. */
+body.documents-only #consultation-form > .question-group:not(#section-documents),body.documents-only #consultation-form > .form-toolbar,body.documents-only .consultation-jump{display:none}
+.documents-next{display:none;margin-top:18px}
+body.documents-only .documents-next{display:flex;justify-content:flex-end}
+body.consultation-page .property-regulated{grid-column:1/-1;padding:15px 16px;border:1px solid #e5dced;border-radius:10px;background:#faf7fc;color:#4d4058}
+.property-regulated-heading strong{font-size:13px;color:#49365c}.property-regulated-heading p,.property-regulated-note{margin:5px 0 0;font-size:11px;line-height:1.6;color:#81758b}.property-regulated-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}.property-regulated-fields label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700}.property-regulated-fields select{width:100%}.property-regulated-status{margin:12px 0 0;font-size:12px;font-weight:700;color:#65488b}.property-regulated-periods{margin:7px 0 0;padding-left:18px;font-size:12px;line-height:1.8;color:#5c5065}.property-regulated-periods:empty{display:none}.property-regulated-note{margin-top:8px}.property-regulated-open{width:auto;margin-top:10px;padding:0;border:0;background:transparent;color:#705492;font-size:12px;text-decoration:underline;text-underline-offset:3px}.property-regulated-open[hidden]{display:none}@media(max-width:560px){.property-regulated-fields{grid-template-columns:1fr}}
+body.consultation-page #section-purchase .property-regulated{margin:0 0 18px}
+body.consultation-page #section-purchase .property-regulated{grid-column:1/-1;margin:0}
+body.consultation-page #section-purchase .property-regulated{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:5px 14px;align-items:center;padding:10px 12px}
+.property-regulated-heading{grid-column:1}.property-regulated-status{grid-column:2;margin:0;line-height:1.5}.property-regulated-open{grid-column:3;grid-row:1;margin:0;white-space:nowrap}.property-regulated-periods{grid-column:2/-1;margin:0;padding-left:16px;line-height:1.55}
+#regulated-dialog{width:min(1440px,96vw);max-width:none;max-height:94vh;padding:0;border:0;border-radius:14px;background:#f8f6fa;box-shadow:0 20px 70px #21132f55;overflow:auto}#regulated-dialog::backdrop{background:#21172b99}#regulated-dialog .regulated-dialog-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:#fff;border-bottom:1px solid #e9e3ef}#regulated-dialog .regulated-dialog-bar h2{margin:0;font-size:17px;color:#49365c}#regulated-dialog .regulated-dialog-bar button{width:auto}#regulated-dialog-content{padding:16px}#regulated-dialog .regulated-panel{box-shadow:none}#regulated-dialog .regulated-document{position:static}
+@media(max-width:700px){body.consultation-page #section-purchase .property-regulated{grid-template-columns:1fr auto}.property-regulated-status,.property-regulated-periods{grid-column:1/-1}.property-regulated-open{grid-column:2;grid-row:1}.property-regulated-periods{padding-left:16px}#regulated-dialog-content{padding:8px}}
+.property-regulated-status:empty{display:none}.property-regulated-periods:not(:empty){grid-column:2;grid-row:1;padding:0;list-style:none}.property-regulated-periods:not(:empty) li{color:#65488b;font-weight:600;line-height:1.6}@media(max-width:700px){.property-regulated-periods:not(:empty){grid-column:1/-1;grid-row:auto}}
+/* A single page scroll keeps consultation content visible. */
+body.consultation-page .intro{position:relative;transition:none}
+body.consultation-page.is-scrolled .intro{padding:16px 0 18px}
+body.consultation-page.is-scrolled .intro h1{font-size:clamp(28px,3.2vw,38px);margin:8px 0 10px}
+body.consultation-page.is-scrolled .intro>p{font-size:14px;line-height:1.8}
+@media(min-width:841px){body.consultation-page .summary-panel,body.consultation-page.is-scrolled .summary-panel{top:20px}}
+.expense-transfer-block{padding:15px;border:1px solid #e9e3ef;border-radius:10px;background:#fcfbfd;margin-bottom:12px}.expense-transfer-block h3{margin:0 0 6px;color:#49365c;font-size:14px}.expense-transfer-block>p{font-size:12px;line-height:1.6;color:#81758b;margin:0 0 12px}.expense-transfer-block>label,.expense-legacy-note{display:block;font-size:12px;font-weight:700;color:#51445b;line-height:1.6}.expense-transfer-summary,.expense-item-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.expense-transfer-summary label,.expense-item-grid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#51445b}.expense-transfer-block select,.expense-transfer-block input,.expense-transfer-block textarea,.expense-legacy-note textarea{width:100%;min-width:0}.expense-transfer-block>select{max-width:320px;margin-top:6px}.expense-item{margin-top:12px;padding:12px;border:1px solid #e8e1ed;border-radius:8px;background:#fff}.expense-item-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#5b4771;font-size:12px}.expense-item-heading button,.expense-transfer-actions button,.expense-transfer-block>div>button{width:auto;font-size:12px;padding:7px 11px}.expense-item-wide{grid-column:1/-1}.expense-transfer-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}.expense-transfer-actions span{font-size:12px;color:#705492;font-weight:700}.expense-transfer-block .expense-transfer-note{margin:8px 0 0;font-size:11px;color:#81758b}.expense-transfer-advice{margin:12px 0;padding:10px 12px;border-radius:7px;background:#f4eef9;color:#654b7f;font-size:12px;line-height:1.6}#other-transfer-add{width:auto;margin-top:10px}.expense-review-checks{display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 0 0;padding:12px;border:1px solid #e9e3ef;border-radius:8px}.expense-review-checks legend{padding:0 5px;color:#5b4771;font-size:12px;font-weight:700}.expense-review-checks label{display:flex;align-items:center;gap:6px;font-size:12px;color:#655a6e}.expense-review-checks input{width:auto}.expense-legacy-note textarea{display:block;margin-top:6px}@media(max-width:560px){.expense-transfer-summary,.expense-item-grid{grid-template-columns:1fr}.expense-item-wide{grid-column:auto}}
+.expense-item-grid label[hidden]{display:none}
+@media(min-width:1100px){
+  body.consultation-page #section-household .household-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"household homes rights details";align-items:end}
+  body.consultation-page #section-household textarea[name=householdDetails]{height:44px;min-height:44px}
+}
+body.consultation-page input[name=expenses][readonly]{background:#f0edf2;color:#8f8796;cursor:not-allowed}
+body.consultation-page #section-expenses button:disabled{opacity:.45;cursor:not-allowed}
+.expense-transfer-block .expense-disabled-note{margin:8px 0 0;font-size:11px;color:#8a5b27}
+.expense-transfer-block .expense-disabled-note[hidden]{display:none}
+/* Keep the title and the lookup result aligned, including long messages. */
+body.consultation-page #section-purchase .property-regulated{min-height:44px;align-items:center}
+#section-purchase .property-regulated-heading,#section-purchase .property-regulated-status,#section-purchase .property-regulated-periods{min-width:0;line-height:1.6;overflow-wrap:anywhere}
+#section-purchase .property-regulated-heading strong{display:block;line-height:1.6}
+#section-purchase .property-regulated-status{grid-row:1;margin:0;align-self:center}
+@media(max-width:700px){#section-purchase .property-regulated-status{grid-row:auto;grid-column:1/-1}}
+.field-source-badge{display:inline-block;margin-left:5px;color:#76569a;font-size:11px;font-weight:700;vertical-align:baseline}
+.residence-period{display:flex;align-items:center;gap:14px;margin-top:16px;padding:10px 12px;min-height:44px;border:1px solid #e5dced;border-radius:10px;background:#faf7fc;line-height:1.6;flex-wrap:wrap}
+.residence-period strong{font-size:13px;color:#49365c}.residence-period p{margin:0;color:#65488b;font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.exemption-review{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:18px;padding:10px 12px;border:1px solid #e5dced;border-radius:10px;background:#faf7fc;color:#4d4058;line-height:1.6}
+.exemption-review-header strong{font-size:13px;color:#49365c}
+.exemption-review-items{min-width:0;font-size:12px;font-weight:700;color:#65488b;overflow-wrap:anywhere}
+.form-toolbar #message:not(:empty){margin:0}
+body.consultation-page #section-notes .evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.consultation-page #section-notes .evidence-grid>label{grid-column:auto}
+
+.buyer-grid{margin-top:18px}.buyer-help{font-size:12px;color:#756580;line-height:1.6;margin:8px 0 0}

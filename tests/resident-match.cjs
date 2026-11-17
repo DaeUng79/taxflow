@@ -1,0 +1,10 @@
+const assert = require('assert');
+global.paymentUtils = {formatDate: s => /^\d{4}\.\d{2}\.\d{2}\.$/.test(s) ? s : null};
+const {residentComparison} = require('../frontend/public/chapters/ch01_consultation/consultation/resident-match.js');
+const data={taxpayerName:'홍길동',address:'경남 양산시 1번지',addressDetail:'101동 102호',acquisitionContractDate:'2010.01.01.',transferContractDate:'2020.01.01.'};
+const pages=[{name:'홍길동',history:[{address:'경남 양산시 1번지 101동 102호',date:'2011.01.01.',reason:'전입'},{address:'부산 다른 주소',date:'2019.01.01.',reason:'전입'}]}];
+const result=residentComparison(pages,data);assert.equal(result.moveInDate,'2011.01.01.');assert.match(result.details,/취득연도\(2010년\): 해당 주소 이력과 겹치지 않음/);assert.match(result.details,/양도연도\(2020년\): 해당 주소 이력과 겹치지 않음/);assert.equal(residentComparison(pages,{...data,taxpayerName:'다른사람'}).moveInDate,'');assert.equal(residentComparison(pages,{...data,addressDetail:'101동 103호'}).moveInDate,'');assert.equal(residentComparison([{...pages[0],history:[...pages[0].history,pages[0].history[0]]}],data).moveInDate,'');
+assert.equal(result.moveOutDate,'2019.01.01.');
+assert.equal(residentComparison(pages,{...data,taxpayerName:'다른사람'}).moveOutDate,'');
+assert.equal(residentComparison([{...pages[0],history:[...pages[0].history,{address:'다른 주소',date:'2019.01.01.',reason:'전입'}]}],data).moveOutDate,'');
+console.log('주민등록 이름·주소 일치, 기간 비교 및 불명확한 이력 검사 통과');

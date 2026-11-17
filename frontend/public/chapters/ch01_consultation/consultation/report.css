@@ -2,5 +2,33 @@
 *{box-sizing:border-box}body{margin:0}.toolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 22px;background:#fff;border-bottom:1px solid #d7dee7;font-size:13px;color:#526174}.toolbar a{color:#1f3864;text-decoration:none;font-weight:700;white-space:nowrap}.toolbar a[hidden]{display:none}.toolbar button{margin-left:auto;border:1px solid #1f3864;border-radius:5px;background:#1f3864;color:#fff;padding:9px 15px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}.toolbar button:disabled{opacity:.5;cursor:default}
 .sheet{width:210mm;min-height:297mm;margin:18px auto 32px;padding:13mm 14mm 12mm;background:#fff;box-shadow:0 4px 22px #17203324;overflow-wrap:anywhere;-webkit-print-color-adjust:exact;print-color-adjust:exact}.report-header{border-top:3px solid #1f3864;border-bottom:1px solid #1f3864;text-align:center;padding:6mm 0 5mm}.report-brand{display:flex;justify-content:space-between;color:#1f3864;font-size:10px;font-weight:800;letter-spacing:.12em;text-align:left}.report-brand span{color:#657186;font-weight:500;letter-spacing:0}h1{margin:14px 0 0;color:#1f3864;font-size:30px;letter-spacing:-.035em}.report-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:5px 12px;margin-top:10px;color:#526174;font-size:11px}.report-meta span+span:before{content:"·";margin-right:12px;color:#9aa5b4}
 .report-section{margin-top:14px}.report-section h2{margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid #1f3864;color:#1f3864;font-size:14px;line-height:1.3;break-after:avoid}.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid #c8d1dc;border-left:1px solid #c8d1dc;margin:0}.report-field{display:grid;grid-template-columns:105px minmax(0,1fr);min-height:27px;border-right:1px solid #c8d1dc;border-bottom:1px solid #c8d1dc;font-size:11px;line-height:1.5;min-width:0;break-inside:avoid}.report-field.full{grid-column:1/-1;grid-template-columns:125px minmax(0,1fr)}.report-field dt,.report-field dd{margin:0;padding:6px 8px;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}.report-field dt{background:#f1f4f8;color:#3c4859;font-weight:700}.report-field dd{color:#172033}.report-field dd.pending{color:#8a5c24}.report-footer{margin-top:15px;padding-top:9px;border-top:1px solid #d9e0e9;color:#59677a;font-size:10px;line-height:1.5;break-inside:avoid}.report-footer p{margin:0 0 4px}.report-footer>div{display:flex;justify-content:space-between;margin-top:10px;color:#697789}.report-footer strong{color:#1f3864;letter-spacing:.08em}
-@page{size:A4 portrait;margin:13mm 14mm}@media print{html,body{margin:0;background:#fff}.toolbar{display:none}.sheet{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}.report-field{break-inside:auto}.report-section h2{break-after:avoid}}
+@page{size:A4 portrait;margin:11mm 10mm}@media print{html,body{margin:0;background:#fff}.toolbar{display:none}.sheet{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}.report-field{break-inside:auto}.report-section h2{break-after:avoid}}
 @media(max-width:810px){.toolbar{flex-wrap:wrap;padding:10px 14px}.toolbar span{order:3;width:100%;font-size:11px}.sheet{margin:12px auto}}
+.report-grid-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.report-grid-three .report-field:not(.full),.report-field.full,.report-section-relocation .report-field{grid-template-columns:105px minmax(0,1fr)}
+.report-grid-three .report-field.field-otherHomes,.report-grid-three .report-field.field-otherRights{grid-template-columns:135px minmax(0,1fr)}
+.report-section-relocation .report-field.field-propertyAfterMove{grid-template-columns:145px minmax(0,1fr)}
+.report-section-relocation .report-field dt,.report-section-relocation .report-field dd{padding-top:5px;padding-bottom:5px}
+/* Keep a typical completed form on A4 while allowing long entries to flow onto another page. */
+.sheet{padding:11mm 10mm}
+.report-header{padding:3mm 0 3mm;border-bottom:0}
+.report-brand{font-size:9px}
+.report-dates{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.report-header h1{margin:7px 0 0;font-size:23px}
+.report-section{margin-top:11px}
+.report-section h2{margin:0 0 3px;padding-bottom:2px;font-size:12px}
+.report-field{min-height:19px;font-size:10px;line-height:1.35}
+.report-field dt,.report-field dd,.report-section-relocation .report-field dt,.report-section-relocation .report-field dd{padding:3.5px 7px}
+.report-footer{margin-top:7px;padding-top:5px;font-size:9px;line-height:1.4}
+.report-footer>.report-signature{display:flex;justify-content:center;align-items:baseline;gap:4px;flex-wrap:wrap;margin:10px 0 0;color:#172033;font-size:10px;line-height:1.5}
+.report-footer>.report-signature>span{flex-basis:100%;text-align:center}
+.signature-space{display:inline-block;min-width:70px;text-align:right}
+@media print{.sheet{padding:0}}
+@media print{
+  .report-header{padding:2mm 0}
+  .report-header h1{margin-top:5px}
+  .report-section{margin-top:7px}
+  .report-field dt,.report-field dd,.report-section-relocation .report-field dt,.report-section-relocation .report-field dd{padding-top:2.5px;padding-bottom:2.5px}
+  .report-footer{margin-top:5px;padding-top:3px}
+  .report-footer>.report-signature{margin-top:6px;gap:2px}
+}
