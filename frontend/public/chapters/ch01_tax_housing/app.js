@@ -297,6 +297,7 @@
           if (payload.result) {
             if (contract.type === 'transfer_contract') { sellerDocumentHash = data.items[0].sha256 || ''; sellerPages = payload.result.pages || []; updateSellerComparison(); updatePropertyComparison(); }
             const mapped = contractAutofill(payload.result.pages || [], contract.type);
+            const selectedTaxpayer = contract.type === 'transfer_contract' && payload.result.confirmed && form.elements.taxpayerName.value.trim() ? contractAutofill(payload.result.pages || [], contract.type, form.elements.taxpayerName.value.trim()) : null;
             const prefix = contract.type === 'acquisition_contract' ? 'acquisition' : 'transfer';
             let added = 0;
             for (const name of [prefix+'ContractDate', prefix+'BalanceDate', prefix+'Price', ...(contract.type === 'transfer_contract' && payload.result.confirmed ? ['buyerName','buyerId'] : [])]) {
@@ -305,7 +306,13 @@
             }
             for (const [name, value] of Object.entries(mapped.fields)) provenance.compare(name, prefix === 'acquisition' ? '매수' : '양도', value);
             if (contract.type === 'transfer_contract' && payload.result.confirmed && mapped.warnings.some(w => w.startsWith('양수인'))) document.querySelector('#autofill-status').textContent = mapped.warnings.filter(w => w.startsWith('양수인')).join(' ');
+            if (selectedTaxpayer?.fields.taxpayerId && !form.elements.taxpayerId.value.trim()) {
+              form.elements.taxpayerId.value = selectedTaxpayer.fields.taxpayerId;
+              provenance.set('taxpayerId', '양도', form.elements.taxpayerId.value);
+              added++;
+            }
             if (added) {
+              filingPanel?.refresh();
               form.dispatchEvent(new Event('taxflow:holding-updated'));
               markDirty();
               document.querySelector('#autofill-status').textContent = `${prefix === 'acquisition' ? '취득' : '양도'}계약서 분석값을 빈 항목에 입력했습니다. 원본과 실제 지급일을 확인한 뒤 상담 저장을 눌러 주세요.`;
@@ -368,7 +375,8 @@
     if (selectedName && id === null) mapped.fields.taxpayerName = selectedName;
     let count = 0;
     for (const [name, value] of Object.entries(mapped.fields)) {
-      if (['buyerName','buyerId'].includes(name) && !confirmed) continue;
+      if (['buyerName','buyerId','taxpayerId'].includes(name) && !confirmed) continue;
+      if (name === 'taxpayerId' && id !== null && form.elements.taxpayerName.value.trim().replace(/\s/g,'') !== (mapped.fields.taxpayerName || '').replace(/\s/g,'')) continue;
       if (analysisContext.type === 'transfer_contract' && id !== null && ['taxpayerName','taxpayerAddress','birthDate','phoneNumber','address','landCategory','landArea','buildingUse','buildingArea'].includes(name)) continue;
       const input = form.elements.namedItem(name);
       if (!input || !value) continue;

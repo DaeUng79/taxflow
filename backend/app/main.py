@@ -70,7 +70,7 @@ class Handler(SimpleHTTPRequestHandler):
                         data['_addressNoticeDismissed'] = previous['_addressNoticeDismissed']
                     else:
                         data.pop('_addressNoticeDismissed', None)
-                    for field in ("consultationResult", "nextActions", "taxpayerAddress", "landDetails", "buildingDetails", "landCategory", "landArea", "buildingUse", "buildingArea", "expensePresence", "expenseItemsJson", "otherTransferItemsJson", "transferReviewChecksJson", "_fieldSources", "capitalGainsReviewJson", "filingDraftJson", "buyerName", "buyerId", "buyerRelationship"):
+                    for field in ("consultationResult", "nextActions", "taxpayerAddress", "landDetails", "buildingDetails", "landCategory", "landArea", "buildingUse", "buildingArea", "expensePresence", "expenseItemsJson", "otherTransferItemsJson", "transferReviewChecksJson", "_fieldSources", "capitalGainsReviewJson", "filingDraftJson", "buyerName", "buyerId", "buyerRelationship", "taxpayerId"):
                         if field in previous and field not in data:
                             data[field] = previous[field]
                 cursor = connection.execute("UPDATE consultations SET taxpayer_name=?, consulted_at=?, data=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (data["taxpayerName"].strip(), data["consultedAt"], json.dumps(data, ensure_ascii=False), record_id))

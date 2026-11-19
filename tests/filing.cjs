@@ -25,3 +25,59 @@ test('buyer information follows consultation, while saved overrides remain visib
   d.filingDraftJson=JSON.stringify({fields:{}});assert.equal(model.build(d).values.buyerName,'이매수');
   assert.equal(model.build({...data()}).values.buyerName,'');
 });
+
+test('saved taxpayer identity and residence flow to return with explicit override preserved',()=>{
+  const d={...data(),taxpayerId:'900101-1234567',resident:'예'};
+  let m=model.build(d);
+  assert.equal(m.fields.residentId,'900101-1234567');
+  assert.equal(m.values.residentId,'900101-1234567');
+  assert.equal(m.values.resident,'거주자');
+  assert.equal(model.build({...d,resident:'아니요'}).values.resident,'비거주자');
+  assert.equal(model.build({...d,resident:'확인 필요'}).values.resident,'');
+  assert.ok(model.build({...d,resident:'확인 필요'}).warnings.some(s=>s.includes('국내 거주자 여부')));
+  d.filingDraftJson=JSON.stringify({fields:{residentId:'수동 확인값'}});
+  m=model.build(d);assert.equal(m.values.residentId,'수동 확인값');
+  assert.ok(m.warnings.some(s=>s.includes('신고자 주민등록번호') && s.includes('다릅니다')));
+  d.filingDraftJson=JSON.stringify({fields:{residentId:''}});
+  assert.equal(model.build(d).values.residentId,'');
+  d.filingDraftJson=JSON.stringify({fields:{}});
+  assert.equal(model.build(d).values.residentId,d.taxpayerId);
+});
+
+test('missing tax review blocks amounts but preserves independently entered identity and residence',()=>{
+  const m=model.build({...data(),taxpayerId:'900101-1234567',resident:'예',acquisitionPrice:''});
+  assert.ok(m.errors.length);
+  assert.equal(m.values.residentId,'900101-1234567');
+  assert.equal(m.values.resident,'거주자');
+  const fs=require('node:fs'),vm=require('node:vm');
+  const context={filingModel:model};vm.createContext(context);
+  vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
+  const html=context.render(m);
+  assert.ok(html.includes('900101-1234567'));
+  assert.ok(html.includes('금액 확인 필요'));
+  assert.ok(!html.includes('1,300,000,000'));
+  assert.ok(html.includes('✓'));
+});
+
+test('unclassified expense shows independent reviewed amounts but withholds category-dependent boxes',()=>{
+  const d=data();
+  d.expensePresence='있음'; d.expenses='10000000';
+  d.expenseItemsJson=JSON.stringify([{kind:'취득 관련',description:'가상 비용',amount:'10000000',evidence:'있음'}]);
+  const m=model.build(d);
+  assert.equal(m.partialAmounts,true);
+  assert.equal(m.r.errors.length,0);
+  assert.ok(m.errors.some(x=>x.includes('비용 1의 신고서 구분')));
+  const fs=require('node:fs'),vm=require('node:vm'),context={filingModel:model};vm.createContext(context);
+  vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
+  const html=context.render(m), money=n=>n.toLocaleString('ko-KR');
+  assert.ok(html.includes('검토 금액 반영 · 비용 분류 필요'));
+  assert.ok(html.includes(`title="${money(m.r.transfer)}"`));
+  assert.ok(html.includes(`title="${money(m.r.gain)}"`));
+  assert.ok(html.includes(`title="${money(m.r.assessed)}"`));
+  assert.ok(!html.includes(`title="${money(m.r.expenses)}"`));
+  assert.ok(html.includes('미분류'));
+  d.filingDraftJson=JSON.stringify({fields:{foreignCredit:'1'}});
+  assert.equal(model.build(d).partialAmounts,false);
+  d.filingDraftJson=JSON.stringify({fields:{}}); d.acquisitionPrice='';
+  assert.equal(model.build(d).partialAmounts,false);
+});

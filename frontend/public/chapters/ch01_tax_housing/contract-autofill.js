@@ -1,6 +1,6 @@
 /* Keep ambiguous identities and existing consultation values for human review. */
 function contractAutofill(pages, type, selectedName = '') {
-  const fields = {}, warnings = [], labels = {taxpayerName:'신고자 성명', taxpayerAddress:'납세자 주소', birthDate:'생년월일', phoneNumber:'연락처', address:'주택 주소', landCategory:'토지 지목', landArea:'토지 면적', buildingUse:'건물 용도', buildingArea:'건물 면적'};
+  const fields = {}, warnings = [], labels = {taxpayerName:'신고자 성명', taxpayerId:'신고자 주민등록번호', taxpayerAddress:'납세자 주소', birthDate:'생년월일', phoneNumber:'연락처', address:'주택 주소', landCategory:'토지 지목', landArea:'토지 면적', buildingUse:'건물 용도', buildingArea:'건물 면적'};
   const clean = v => typeof v === 'string' && !/판독\s*불가|확인\s*필요|불명/.test(v) ? v.trim() : '';
   const unique = values => { const list = [...new Set(values.map(clean).filter(Boolean))]; return list.length === 1 ? list[0] : ''; };
   const rows = pages.flatMap(p => Array.isArray(p?.property) ? p.property : []).filter(r => r && typeof r.label === 'string' && typeof r.value === 'string');
@@ -42,7 +42,11 @@ function contractAutofill(pages, type, selectedName = '') {
         const values=people.map(p=>clean(p[source])).filter(Boolean); fields[target]=unique(values);
         if (new Set(values).size>1) warnings.push(`${labels[target]}에 여러 값이 있습니다. 원본을 확인하세요.`);
       }
-      const rrn = unique(people.map(p=>p.resident_registration_number)).replace(/[\s-]/g,'');
+      const identifier = unique(people.map(p=>p.resident_registration_number));
+      const normalizedId = identifier.replace(/[\s-]/g,'');
+      if (/^\d{6}[\d*]{7}$/.test(normalizedId)) fields.taxpayerId = identifier;
+      else if (identifier) warnings.push('신고자 주민등록번호가 불완전합니다. 원본을 확인해 직접 입력하세요.');
+      const rrn = identifier.replace(/[\s-]/g,'');
       const match = rrn.match(/^(\d{2})(\d{2})(\d{2})([1-8])[\d*]*$/);
       if (match) {
         const century = '1256'.includes(match[4]) ? '19' : '20';

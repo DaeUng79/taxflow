@@ -37,13 +37,14 @@ const filingModel = (() => {
     const errors=[],warnings=[]; let saved={},review={};
     try { saved=parse(data.filingDraftJson); if (saved.version && saved.version !== 1) throw Error('지원하지 않는 신고서 버전입니다.'); if (saved.fields && (Array.isArray(saved.fields) || typeof saved.fields !== 'object' || Object.values(saved.fields).some(v=>typeof v !== 'string'))) throw Error('신고서 입력값 형식을 확인하세요.'); if (saved.expenses && (Array.isArray(saved.expenses) || typeof saved.expenses !== 'object')) throw Error('비용 분류 형식을 확인하세요.'); } catch(e) { errors.push(e.message); }
     try { review=parse(data.capitalGainsReviewJson); } catch(e) { errors.push('세무 검토내용을 읽을 수 없습니다.'); }
-    const r=calc.calculate(data,review), fields={filingType:'예정신고',taxpayerAddress:data.taxpayerAddress || '',phone:data.phoneNumber || '',buyerName:data.buyerName || '',buyerId:data.buyerId || '',relationship:data.buyerRelationship || '', ...saved.fields};
+    const r=calc.calculate(data,review), fields={filingType:'예정신고',taxpayerAddress:data.taxpayerAddress || '',residentId:data.taxpayerId || '',phone:data.phoneNumber || '',buyerName:data.buyerName || '',buyerId:data.buyerId || '',relationship:data.buyerRelationship || '', ...saved.fields};
     errors.push(...r.errors);warnings.push(...r.warnings);
-    for (const [key, source, label] of [['buyerName','buyerName','양수인 성명'],['buyerId','buyerId','양수인 주민등록번호'],['relationship','buyerRelationship','양도인과의 관계']]) {
+    for (const [key, source, label] of [['residentId','taxpayerId','신고자 주민등록번호'],['buyerName','buyerName','양수인 성명'],['buyerId','buyerId','양수인 주민등록번호'],['relationship','buyerRelationship','양도인과의 관계']]) {
       if (Object.hasOwn(saved.fields || {}, key) && data[source] && String(saved.fields[key]).trim() !== String(data[source]).trim()) warnings.push(`${label}: 신고서에 별도로 저장한 값이 사실확인서와 다릅니다. 확인 후 사실확인서 값으로 되돌릴 수 있습니다.`);
     }
     if (r.options.treatment==='pending' || r.options.rate==='pending') warnings.push('양도소득세 검토 탭에서 비과세·세율 판단을 확정하세요.');
-    for (const [k,label] of metadata.filter(([k])=>['filingDate','taxpayerAddress','buyerName','rateCode','assetCode','office'].includes(k))) if (!fields[k]) warnings.push(`${label} 미입력`);
+    for (const [k,label] of metadata.filter(([k])=>['filingDate','taxpayerAddress','residentId','buyerName','rateCode','assetCode','office'].includes(k))) if (!fields[k]) warnings.push(`${label} 미입력`);
+    if (data.resident !== '예' && data.resident !== '아니요') warnings.push('국내 거주자 여부 미확인');
     if (fields.filingDate && !calc.date(fields.filingDate)) errors.push('신고일을 올바르게 입력하세요.');
     if (data.otherTransfers !== '없음') errors.push('이 신고서는 자산 1건 기준입니다. 같은 해 다른 양도 여부를 확인하세요. 다른 양도가 있으면 합산 신고서를 별도로 작성해야 합니다.');
     if (fields.filingType !== '예정신고') warnings.push('확정·수정·기한후 신고의 합산 및 가산세는 별도 검토가 필요합니다.');
@@ -57,11 +58,12 @@ const filingModel = (() => {
     if(data.expensePresence==='없음') rows=[];
     if(!rows.length && r.expenses>0) rows=[{kind:'기타',description:'사실확인서 필요경비 합계',amount:String(r.expenses),personal:true}];
     const totals=Object.fromEntries(categories.map(c=>[c[0],0]));
+    const classificationErrors=[];
     const expenses=rows.map((row,index)=>{
       const key=fingerprint(row,index), custom=saved.expenses?.[key] || {}, category=categories.find(c=>c[0]===custom.code);
       let amount=calc.money(row.amount); if(amount==null) errors.push(`비용 ${index+1} 금액 확인 필요`);
       if(amount!=null && !row.personal && data.ownership==='공동 소유' && r.options.amountBasis==='whole' && Number(r.options.shareDenominator)>0) amount=Number(BigInt(amount)*BigInt(r.options.shareNumerator)/BigInt(r.options.shareDenominator));
-      if(!category && amount>0) errors.push(`비용 ${index+1}의 신고서 구분을 선택하세요.`);
+      if(!category && amount>0) { const issue=`비용 ${index+1}의 신고서 구분을 선택하세요.`; errors.push(issue); classificationErrors.push(issue); }
       if(category) totals[category[0]]+=amount || 0;
       return {...row,...custom,key,amount,category:category?.[1] || '미분류'};
     });
@@ -77,7 +79,8 @@ const filingModel = (() => {
     values.expenseTotal=values.capitalTotal+values.transferSubtotal;
     const date=fields.filingDate?.split('-') || [];[values.signYear,values.signMonth,values.signDay]=date;
     const appendixPages=paginateExpenses(expenses);
-    return {data,fields,saved,r,values,expenses,appendixPages,totals,errors:[...new Set(errors)],warnings:[...new Set(warnings)],pageCount:3+appendixPages.length};
+    const partialAmounts = classificationErrors.length > 0 && errors.every(issue=>classificationErrors.includes(issue)) && r.errors.length === 0 && Number.isFinite(r.assessed);
+    return {data,fields,saved,r,values,expenses,appendixPages,totals,partialAmounts,errors:[...new Set(errors)],warnings:[...new Set(warnings)],pageCount:3+appendixPages.length};
   }
   return {categories,metadata,adjustments,parse,fingerprint,paginateExpenses,build};
 })();
