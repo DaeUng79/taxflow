@@ -17,9 +17,10 @@ function harness() {
     return elements.get(selector);
   };
   const sandbox = {
+    URLSearchParams,
     document:{querySelector:element,querySelectorAll:()=>[],body:element('body'),addEventListener:(name,fn)=>{events[name]=fn;}},
     window:{addEventListener(){},scrollTo(){},setTimeout(){return 0;},clearTimeout(){}},
-    location:{hash:'#mission-4'},navigator:{clipboard:{writeText:async text=>{sandbox.copied=text;}}},
+    location:{hash:'#mission-4',search:'',origin:'http://127.0.0.1:8765'},navigator:{clipboard:{writeText:async text=>{sandbox.copied=text;}}},
     fetch:async (url,options) => {
       requests.push({url,options});
       return {ok:true,json:async()=>({items:[
@@ -31,9 +32,9 @@ function harness() {
     }
   };
   const context = vm.createContext(sandbox);
-  vm.runInContext(fs.readFileSync(path.join(root,'frontend/public/assets/js/missions.js'),'utf8'),context);
+  vm.runInContext(fs.readFileSync(path.join(root,'app/assets/js/missions.js'),'utf8'),context);
   context.COURSE=context.window.COURSE;
-  let app=fs.readFileSync(path.join(root,'frontend/public/assets/js/app.js'),'utf8');
+  let app=fs.readFileSync(path.join(root,'app/assets/js/app.js'),'utf8');
   const startup='  render();\n  loadProgress();';
   assert.ok(app.includes(startup));
   app=app.replace(startup,'  globalThis.guideTest={state,render,loadProgress,saveProgress,flushProgress,buildPrompt,showBuildPrompt};');
@@ -46,7 +47,10 @@ test('revised progress preserves setup and does not inherit the old lesson compl
   await h.api.loadProgress();
   assert.deepEqual([...h.api.state.done],[1,5]);
   assert.equal(h.api.state.checks[4],undefined);
-  assert.equal(h.element('#side-count').textContent,'2 / 9');
+  h.context.location.hash='#overview';
+  h.api.render();
+  assert.ok(h.element('#main').innerHTML.includes('2 / 9 완료'));
+  h.context.location.hash='#mission-4';
   h.api.state.checks[4]=[true,false,false];
   h.api.saveProgress(h.context.COURSE.missions[3]);
   await h.api.flushProgress();

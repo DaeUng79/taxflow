@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const {createFieldProvenance} = require('../frontend/public/chapters/ch01_tax_housing/field-provenance.js');
+const {createFieldProvenance} = require('../app/chapters/ch01_tax_housing/field-provenance.js');
 class Badge { constructor(){this.className='';this.textContent='';} setAttribute(){} remove(){this.label.badge=null;} }
 const labels = {}, listeners = {}, fields = {};
 for (const name of ['address','birthDate']) {

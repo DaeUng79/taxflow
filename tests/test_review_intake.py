@@ -2,8 +2,8 @@ import base64, io, json, os, sqlite3, tempfile, unittest
 from email.message import Message
 from unittest.mock import patch
 import fitz
-from backend.app.db import initialize, connect
-from backend.app.chapters.ch01_tax_housing.intake import create
+from app.db import initialize, connect
+from app.chapters.ch01_tax_housing.intake import create
 class Request:
     def __init__(self,payload):
         body=json.dumps(payload).encode(); self.rfile=io.BytesIO(body); self.headers=Message()

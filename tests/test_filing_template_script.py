@@ -9,8 +9,8 @@ import unittest
 import fitz
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = Path('backend/app/chapters/ch01_tax_housing/filing/build_filing_templates.py')
-OUTPUT = Path('frontend/public/chapters/ch01_tax_housing/filing')
+SCRIPT = Path('app/chapters/ch01_tax_housing/filing/build_filing_templates.py')
+OUTPUT = Path('app/chapters/ch01_tax_housing/filing')
 MARKER = b'q\n0.0 0.0 595 841 re\nW\nn\n1 0 0 1 0 0 cm'
 
 
@@ -21,7 +21,7 @@ class FilingTemplateScriptTests(unittest.TestCase):
             script = root / SCRIPT
             script.parent.mkdir(parents=True)
             shutil.copy2(ROOT / SCRIPT, script)
-            (root / OUTPUT).parent.mkdir(parents=True)
+            (root / OUTPUT).parent.mkdir(parents=True, exist_ok=True)
             source = root / 'synthetic.pdf'
             with fitz.open() as doc:
                 for i in range(3):
@@ -49,7 +49,7 @@ class FilingTemplateScriptTests(unittest.TestCase):
                 doc.save(source)
             result = subprocess.run([sys.executable, str(script), str(source)], cwd=folder, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
-            self.assertFalse((root / OUTPUT).exists())
+            self.assertEqual(list((root / OUTPUT).glob('form-*.png')), [])
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const model=require('../frontend/public/chapters/ch01_tax_housing/filing-model.js');
-const caseB=require('../frontend/public/chapters/ch01_tax_housing/case-b.js');
+const model=require('../app/chapters/ch01_tax_housing/filing-model.js');
+const caseB=require('../app/chapters/ch01_tax_housing/case-b.js');
 const data=()=>({...caseB,capitalGainsReviewJson:JSON.stringify({treatment:'oneHome',rate:'general'}),filingDraftJson:JSON.stringify({version:1,fields:{filingDate:'2026-04-10',rateCode:'1-10',assetCode:'고가주택 (2)'},expenses:{}})});
 test('R08 case B reconciles all three forms',()=>{const m=model.build(data());assert.deepEqual(m.errors,[]);assert.equal(m.pageCount,3);for(const [key,value] of Object.entries({transfer:1300000000,acquisition:650000000,taxableGain:50000000,deduction:4000000,income:46000000,base:43500000,assessed:5265000,payable:5265000,purchase:650000000,expenseTotal:0}))assert.equal(m.values[key],value,key);});
 test('acquisition incidental expenses move to acquisition total without double counting',()=>{const d=data(),row={kind:'취득 관련',description:'취득세',amount:'10000000',evidence:'있음'};d.expensePresence='있음';d.expenses='10000000';d.expenseItemsJson=JSON.stringify([row]);const f=JSON.parse(d.filingDraftJson);f.expenses[model.fingerprint(row,0)]={code:'112'};d.filingDraftJson=JSON.stringify(f);const m=model.build(d);assert.deepEqual(m.errors,[]);assert.equal(m.values.acquisition,660000000);assert.equal(m.values.expenses,0);assert.equal(m.values.gain,640000000);assert.equal(m.values.acqSubtotal,m.values.acquisition);assert.equal(m.pageCount,4);});
@@ -51,7 +51,7 @@ test('missing tax review blocks amounts but preserves independently entered iden
   assert.equal(m.values.resident,'거주자');
   const fs=require('node:fs'),vm=require('node:vm');
   const context={filingModel:model};vm.createContext(context);
-  vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
+  vm.runInContext(fs.readFileSync('app/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
   const html=context.render(m);
   assert.ok(html.includes('900101-1234567'));
   assert.ok(html.includes('금액 확인 필요'));
@@ -68,7 +68,7 @@ test('unclassified expense shows independent reviewed amounts but withholds cate
   assert.equal(m.r.errors.length,0);
   assert.ok(m.errors.some(x=>x.includes('비용 1의 신고서 구분')));
   const fs=require('node:fs'),vm=require('node:vm'),context={filingModel:model};vm.createContext(context);
-  vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
+  vm.runInContext(fs.readFileSync('app/chapters/ch01_tax_housing/filing-render.js','utf8')+'\nthis.render=filingRender.render;',context);
   const html=context.render(m), money=n=>n.toLocaleString('ko-KR');
   assert.ok(html.includes('검토 금액 반영 · 비용 분류 필요'));
   assert.ok(html.includes(`title="${money(m.r.transfer)}"`));

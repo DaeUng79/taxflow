@@ -10,8 +10,8 @@ import unittest
 import fitz
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = Path('backend/app/chapters/ch01_tax_housing/Adjustment_Areas')
-SOURCES = Path('frontend/public/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas')
+SCRIPTS = Path('app/chapters/ch01_tax_housing/Adjustment_Areas')
+SOURCES = Path('app/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas')
 
 
 class AreaScriptsTests(unittest.TestCase):

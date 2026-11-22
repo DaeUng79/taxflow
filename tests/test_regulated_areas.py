@@ -1,5 +1,5 @@
 import unittest
-from backend.app.chapters.ch01_tax_housing.regulated_areas import search
+from app.chapters.ch01_tax_housing.regulated_areas import search
 
 
 class RegulatedAreaSearchTest(unittest.TestCase):

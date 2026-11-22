@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const {residencePeriod} = require('../frontend/public/chapters/ch01_tax_housing/residence-period.js');
+const {residencePeriod} = require('../app/chapters/ch01_tax_housing/residence-period.js');
 const format = value => /^\d{4}\.\d{2}\.\d{2}\.$/.test(value) ? value : null;
 assert.equal(residencePeriod('2010.12.28.', '2017.05.02.', format).message, '2010.12.28. ~ 2017.05.02. · 6년 4개월 4일');
 assert.match(residencePeriod('2020.02.29.', '2022.02.28.', format).message, /2년$/);

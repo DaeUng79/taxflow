@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
-global.residencePeriod = require('../frontend/public/chapters/ch01_tax_housing/residence-period.js').residencePeriod;
-global.householdReview = require('../frontend/public/chapters/ch01_tax_housing/exemption-review.js').householdReview;
+global.residencePeriod = require('../app/chapters/ch01_tax_housing/residence-period.js').residencePeriod;
+global.householdReview = require('../app/chapters/ch01_tax_housing/exemption-review.js').householdReview;
 global.paymentUtils = {formatDate: value => {
   const match = String(value || '').match(/^(\d{4})[-.](\d{2})[-.](\d{2})\.?$/);
   return match ? `${match[1]}.${match[2]}.${match[3]}.` : '';
@@ -24,7 +24,7 @@ const data = {taxpayerName:'가상',consultedAt:'2026',expenses:'10000',otherTra
   otherTransferItemsJson:JSON.stringify([{kind:'주택',address:'가상 지역',status:'양도 완료',filing:'예정신고 완료',combined:'아니요'}]),
   transferReviewChecksJson:JSON.stringify({dates:true})};
 global.fetch = async url => ({ok:true, json:async () => url.includes('/api/consultations/1/settlement') ? {data:{}} : url.includes('/api/consultations/1') ? {data} : url.includes('/api/resident/') ? {result:null} : {items:[]}});
-require('../frontend/public/chapters/ch01_tax_housing/report.js');
+require('../app/chapters/ch01_tax_housing/report.js');
 setImmediate(() => {
   const flatten = node => [node.textContent,...node.children.flatMap(flatten)];
   const text=flatten(ids.get('#report-sections')).join('\n');

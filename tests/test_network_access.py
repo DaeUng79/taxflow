@@ -8,10 +8,10 @@ from functools import partial
 from http.server import ThreadingHTTPServer
 from unittest.mock import patch
 
-from backend.app.access import bind_address
-from backend.app.main import Handler, FRONTEND_ROOT
-from backend.app.db import initialize
-from backend.app.db import mission_progress
+from app.access import bind_address
+from app.main import Handler, FRONTEND_ROOT
+from app.db import initialize
+from app.db import mission_progress
 
 
 class NetworkAccessTests(unittest.TestCase):
@@ -86,6 +86,14 @@ class NetworkAccessTests(unittest.TestCase):
                     self.assertEqual(response.status, 302)
                     self.assertEqual(response.getheader('Location'), f'/index.html#mission-{expected}')
                     response.read(); connection.close()
+                # Combined app/ keeps server files alongside browser assets.
+                for method in ('GET', 'HEAD'):
+                    for url in ('/main.py', '/db/schema.sql',
+                                '/chapters/ch01_tax_housing/acquisition.py',
+                                '/chapters/ch01_tax_housing/Adjustment_Areas/',
+                                '/assets/.DS_Store'):
+                        self.assertEqual(request(method, url)[0], 404, (method, url))
+                self.assertEqual(request('GET', '/assets/js/app.js')[0], 200)
                 self.assertEqual(request('GET', '/index.html')[0], 200)
                 self.assertEqual(request('GET', '/api/health')[0], 200)
                 status, payload = request('POST', '/api/consultations', {'taxpayerName':'가상 테스트','consultedAt':'2026-01-01'}, f'http://{host}')

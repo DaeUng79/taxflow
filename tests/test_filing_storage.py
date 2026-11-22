@@ -1,7 +1,7 @@
 import json
 from tests.test_expense_transfer_storage import ExpenseTransferStorageTest, Request
-from backend.app.main import Handler
-from backend.app.db import connect
+from app.main import Handler
+from app.db import connect
 
 
 class FilingStorageTest(ExpenseTransferStorageTest):

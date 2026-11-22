@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'), fs=require('node:fs'), vm=require('node:vm');
 const {test}=require('node:test');
-const capitalGains=require('../frontend/public/chapters/ch01_tax_housing/capital-gains.js');
+const capitalGains=require('../app/chapters/ch01_tax_housing/capital-gains.js');
 
 class Element {
   constructor(){this.value='';this.textContent='';this.children=[];this.hidden=false;this.listeners={};this.classList={toggle(){}};}
@@ -19,7 +19,7 @@ function setup(originalDocuments={acquisition:{},transfer:{},resident:{}}, histo
   const form=new Element(); form.elements={capitalGainsReviewJson:store,taxpayerName:new Element()}; form.regulatedHistory=history;
   const context={capitalGains,document:{querySelector:()=>panel,createElement:()=>new Element()},FormData:class {constructor(){return Object.entries({capitalGainsReviewJson:store.value});}},queueMicrotask:fn=>jobs.push(fn),Event:class {constructor(type){this.type=type;}}};
   vm.createContext(context);
-  vm.runInContext(fs.readFileSync('frontend/public/chapters/ch01_tax_housing/capital-gains-panel.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('app/chapters/ch01_tax_housing/capital-gains-panel.js','utf8'),context);
   const opened=[];
   context.createCapitalGainsPanel({form,getState:()=>({id:1,dirty:false,saving:false,originalDocuments}),save:async()=>{},showFacts:()=>{},openContract:key=>opened.push(key)});
   const flush=()=>{while(jobs.length) jobs.shift()();};

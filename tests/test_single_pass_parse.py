@@ -1,6 +1,6 @@
 import base64,copy,io,json,unittest
 from unittest.mock import patch
-from backend.app.chapters.ch02_pdf_Parsing import api
+from app.chapters.ch02_pdf_Parsing import api
 
 class SinglePassTests(unittest.TestCase):
     def make(self,**changes):

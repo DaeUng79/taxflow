@@ -2,8 +2,8 @@ import io,json,os,tempfile,unittest
 from email.message import Message
 from types import SimpleNamespace
 from unittest.mock import patch
-from backend.app.db import initialize,connect
-from backend.app.main import Handler
+from app.db import initialize,connect
+from app.main import Handler
 
 class Request:
     def __init__(self,payload):
