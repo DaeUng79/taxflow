@@ -49,35 +49,47 @@ class NetworkAccessTests(unittest.TestCase):
                     connection.request('GET', f'/chapters/{old}/consultation/index.html?view=filing', headers={'Host': host})
                     response = connection.getresponse()
                     self.assertEqual(response.status, 302)
-                    self.assertEqual(response.getheader('Location'), '/chapters/ch01_tax_housing/index.html?view=filing')
+                    self.assertEqual(response.getheader('Location'), '/chapters/ch02_tax_housing/index.html?view=filing')
                     response.read(); connection.close()
-                self.assertEqual(request('GET', '/chapters/ch01_tax_housing/index.html?view=filing')[0], 200)
-                for suffix in ('index.html?view=filing', 'filing/form-1.png', 'filing-report.html', 'app.js'):
+                self.assertEqual(request('GET', '/chapters/ch02_tax_housing/index.html?view=filing')[0], 200)
+                for old, suffix, expected in (
+                    ('ch01_tax_housing', 'index.html?view=documents', '/chapters/ch02_tax_housing/index.html?view=documents'),
+                    ('ch01_tax_housing', 'consultation/filing-report.html?test=1', '/chapters/ch02_tax_housing/filing-report.html?test=1'),
+                    ('ch02_pdf_Parsing', 'guide.html?source=test', '/chapters/ch01_pdf_Parsing/guide.html?source=test'),
+                ):
                     connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=5)
-                    connection.request('GET', f'/chapters/ch01_tax_housing/consultation/{suffix}', headers={'Host': host})
+                    connection.request('GET', f'/chapters/{old}/{suffix}', headers={'Host': host})
                     response = connection.getresponse()
                     self.assertEqual(response.status, 302)
-                    self.assertEqual(response.getheader('Location'), f'/chapters/ch01_tax_housing/{suffix}')
+                    self.assertEqual(response.getheader('Location'), expected)
                     response.read(); connection.close()
-                    self.assertEqual(request('GET', f'/chapters/ch01_tax_housing/{suffix}')[0], 200)
+                    self.assertEqual(request('GET', expected)[0], 200)
+                for suffix in ('index.html?view=filing', 'filing/form-1.png', 'filing-report.html', 'app.js'):
+                    connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=5)
+                    connection.request('GET', f'/chapters/ch02_tax_housing/consultation/{suffix}', headers={'Host': host})
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 302)
+                    self.assertEqual(response.getheader('Location'), f'/chapters/ch02_tax_housing/{suffix}')
+                    response.read(); connection.close()
+                    self.assertEqual(request('GET', f'/chapters/ch02_tax_housing/{suffix}')[0], 200)
                 for number in (1, 2, 3):
-                    self.assertEqual(request('GET', f'/chapters/ch01_tax_housing/filing/form-{number}.png')[0], 200)
+                    self.assertEqual(request('GET', f'/chapters/ch02_tax_housing/filing/form-{number}.png')[0], 200)
                 for suffix in ('regulated-areas/regions.pdf', 'regulated-areas/history.pdf', 'regulated-areas/pages/regions-01.jpg', 'regulated-areas/pages/history-01.jpg'):
                     connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=5)
                     connection.request('GET', f'/reference/{suffix}?test=1', headers={'Host': host})
                     response = connection.getresponse()
                     self.assertEqual(response.status, 302)
-                    self.assertEqual(response.getheader('Location'), f'/chapters/ch01_tax_housing/Adjustment_Areas/{suffix}?test=1')
+                    self.assertEqual(response.getheader('Location'), f'/chapters/ch02_tax_housing/Adjustment_Areas/{suffix}?test=1')
                     response.read(); connection.close()
-                    self.assertEqual(request('GET', f'/chapters/ch01_tax_housing/Adjustment_Areas/{suffix}')[0], 200)
+                    self.assertEqual(request('GET', f'/chapters/ch02_tax_housing/Adjustment_Areas/{suffix}')[0], 200)
                 for old in ('02_intake', 'ch02_intake'):
                     connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=5)
                     connection.request('GET', f'/chapters/{old}/guide.html?source=test', headers={'Host': host})
                     response = connection.getresponse()
                     self.assertEqual(response.status, 302)
-                    self.assertEqual(response.getheader('Location'), '/chapters/ch02_pdf_Parsing/guide.html?source=test')
+                    self.assertEqual(response.getheader('Location'), '/chapters/ch01_pdf_Parsing/guide.html?source=test')
                     response.read(); connection.close()
-                for url in ('/chapters/ch02_pdf_Parsing/', '/chapters/ch02_pdf_Parsing/guide.html', '/chapters/ch02_pdf_Parsing/intake.js', '/chapters/ch02_pdf_Parsing/intake.css'):
+                for url in ('/chapters/ch01_pdf_Parsing/', '/chapters/ch01_pdf_Parsing/guide.html', '/chapters/ch01_pdf_Parsing/intake.js', '/chapters/ch01_pdf_Parsing/intake.css'):
                     self.assertEqual(request('GET', url)[0], 200, url)
                 for old, expected in [('ch03_evidence', 7), ('ch04_review', 8), ('ch05_report', 9)]:
                     connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=5)
@@ -89,8 +101,8 @@ class NetworkAccessTests(unittest.TestCase):
                 # Combined app/ keeps server files alongside browser assets.
                 for method in ('GET', 'HEAD'):
                     for url in ('/main.py', '/db/schema.sql',
-                                '/chapters/ch01_tax_housing/acquisition.py',
-                                '/chapters/ch01_tax_housing/Adjustment_Areas/',
+                                '/chapters/ch02_tax_housing/acquisition.py',
+                                '/chapters/ch02_tax_housing/Adjustment_Areas/',
                                 '/assets/.DS_Store'):
                         self.assertEqual(request(method, url)[0], 404, (method, url))
                 self.assertEqual(request('GET', '/assets/js/app.js')[0], 200)

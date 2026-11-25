@@ -3,7 +3,7 @@ from email.message import Message
 from unittest.mock import patch
 import fitz
 from app.db import initialize, connect
-from app.chapters.ch01_tax_housing.intake import create
+from app.chapters.ch02_tax_housing.intake import create
 class Request:
     def __init__(self,payload):
         body=json.dumps(payload).encode(); self.rfile=io.BytesIO(body); self.headers=Message()

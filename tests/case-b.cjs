@@ -1,8 +1,8 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const a = require('../app/chapters/ch01_tax_housing/case-a.js');
-const b = require('../app/chapters/ch01_tax_housing/case-b.js');
-const tax = require('../app/chapters/ch01_tax_housing/capital-gains.js');
+const a = require('../app/chapters/ch02_tax_housing/case-a.js');
+const b = require('../app/chapters/ch02_tax_housing/case-b.js');
+const tax = require('../app/chapters/ch02_tax_housing/capital-gains.js');
 
 test('사례 B는 구분 이름과 월곶면 주소를 갖는 별도 가상 상담', () => {
   assert.equal(b.taxpayerName, '김가람 B (가상)');

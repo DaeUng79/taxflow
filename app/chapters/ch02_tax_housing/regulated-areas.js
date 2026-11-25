@@ -15,11 +15,11 @@
   const sourceStatus = document.querySelector('#regulated-document-status');
   function showSource(filename, sourcePage) {
     if (!sourcePages[filename] || !Number.isInteger(sourcePage) || sourcePage < 1 || sourcePage > sourcePages[filename]) return;
-    const url = `/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/${filename}#page=${sourcePage}`;
+    const url = `/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/${filename}#page=${sourcePage}`;
     sourceSelect.value = filename;
     currentSource = filename; currentPage = sourcePage;
     const name = filename.replace('.pdf', '');
-    sourceImage.src = `/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/pages/${name}-${String(sourcePage).padStart(2, '0')}.jpg`;
+    sourceImage.src = `/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/pages/${name}-${String(sourcePage).padStart(2, '0')}.jpg`;
     sourceImage.parentElement.scrollTop = 0;
     sourceImage.alt = `${filename === 'regions.pdf' ? '지역별' : '연혁별'} 조정대상지역 원본 ${sourcePage}쪽`;
     pageCount.textContent = `${sourcePage} / ${sourcePages[filename]}쪽`;
@@ -64,7 +64,7 @@
       if (item.needs_geometry) details.append(el('p', '지구 경계 확인 필요', 'regulated-warning'));
       if (item.source_file && item.source_page) {
         const link = el('a', `${item.source_title} ${item.source_page}쪽 왼쪽에 보기`);
-        link.href = `/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/${item.source_file}#page=${item.source_page}`;
+        link.href = `/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/${item.source_file}#page=${item.source_page}`;
         link.target = '_blank'; link.rel = 'noopener';
         link.addEventListener('click', event => { event.preventDefault(); showSource(item.source_file, item.source_page); });
         details.append(link);

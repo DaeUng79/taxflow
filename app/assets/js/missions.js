@@ -66,7 +66,7 @@ window.COURSE = {
       "sub": "사실관계 청취",
       "role": "사람이 듣고 확인",
       "href": "mission-5",
-      "page": "chapters/ch01_tax_housing/index.html",
+      "page": "chapters/ch02_tax_housing/index.html",
       "icon": "briefcase"
     },
     {
@@ -75,7 +75,7 @@ window.COURSE = {
       "sub": "문서 파싱과 활용 방법",
       "role": "PDF 파싱 · JSON 저장",
       "href": "mission-4",
-      "page": "chapters/ch02_pdf_Parsing/guide.html",
+      "page": "chapters/ch01_pdf_Parsing/guide.html",
       "direct": true,
       "icon": "files"
     },
@@ -408,14 +408,14 @@ window.COURSE = {
       "build": {
         "prerequisite": "1~3번을 마치고 TAXFLOW와 선택한 로컬 모델을 실행합니다. 기존 프로젝트의 상담 저장 API를 바탕으로 개발하며, 상담 입력 화면을 자세히 만드는 과정은 5번에서 이어집니다.",
         "files": [
-          "app/chapters/ch02_pdf_Parsing/api.py",
-          "app/chapters/ch01_tax_housing/acquisition.py",
-          "app/chapters/ch01_tax_housing/intake.py",
-          "app/chapters/ch01_tax_housing/resident.py",
+          "app/chapters/ch01_pdf_Parsing/api.py",
+          "app/chapters/ch02_tax_housing/acquisition.py",
+          "app/chapters/ch02_tax_housing/intake.py",
+          "app/chapters/ch02_tax_housing/resident.py",
           "app/db/schema.sql",
-          "app/chapters/ch01_tax_housing/acquisition.js",
-          "app/chapters/ch01_tax_housing/resident.js",
-          "app/chapters/ch01_tax_housing/contract-autofill.js"
+          "app/chapters/ch02_tax_housing/acquisition.js",
+          "app/chapters/ch02_tax_housing/resident.js",
+          "app/chapters/ch02_tax_housing/contract-autofill.js"
         ],
         "stages": [
           {
@@ -513,11 +513,11 @@ window.COURSE = {
       "build": {
         "prerequisite": "4번에서 등록한 서류와 기존 상담 저장 기능을 사용합니다. PDF가 없으면 교육용 사례 A 또는 B로 입력·저장·출력을 먼저 시험할 수 있습니다.",
         "files": [
-          "app/chapters/ch01_tax_housing/index.html",
-          "app/chapters/ch01_tax_housing/app.js",
-          "app/chapters/ch01_tax_housing/expense-transfers.js",
-          "app/chapters/ch01_tax_housing/residence-period.js",
-          "app/chapters/ch01_tax_housing/report.js",
+          "app/chapters/ch02_tax_housing/index.html",
+          "app/chapters/ch02_tax_housing/app.js",
+          "app/chapters/ch02_tax_housing/expense-transfers.js",
+          "app/chapters/ch02_tax_housing/residence-period.js",
+          "app/chapters/ch02_tax_housing/report.js",
           "app/main.py",
           "app/db/schema.sql"
         ],
@@ -610,8 +610,8 @@ window.COURSE = {
       "build": {
         "prerequisite": "4번에서 확인한 계약서가 있는 상담을 5번에서 저장합니다. 계약서가 없는 경우에는 빈 화면과 확인 필요 상태부터 검증합니다.",
         "files": [
-          "app/chapters/ch01_tax_housing/settlement.js",
-          "app/chapters/ch01_tax_housing/settlement-report.js",
+          "app/chapters/ch02_tax_housing/settlement.js",
+          "app/chapters/ch02_tax_housing/settlement-report.js",
           "app/assets/js/payment-utils.js",
           "app/main.py",
           "app/db/schema.sql"
@@ -698,15 +698,15 @@ window.COURSE = {
         ]
       ],
       "build": {
-        "prerequisite": "프로젝트의 지역별 이력 DB와 ch01_tax_housing/Adjustment_Areas/regulated-areas 원본 자료를 사용합니다. 새 고시 수집이나 법령 RAG를 만드는 과정이 아니라 현재 제공된 이력 조회 기능을 재현합니다.",
+        "prerequisite": "프로젝트의 지역별 이력 DB와 ch02_tax_housing/Adjustment_Areas/regulated-areas 원본 자료를 사용합니다. 새 고시 수집이나 법령 RAG를 만드는 과정이 아니라 현재 제공된 이력 조회 기능을 재현합니다.",
         "files": [
-          "app/chapters/ch01_tax_housing/regulated_areas.py",
+          "app/chapters/ch02_tax_housing/regulated_areas.py",
           "data/reference/regulated_area_history.sqlite3",
-          "app/chapters/ch01_tax_housing/regulated-areas.js",
-          "app/chapters/ch01_tax_housing/regulated-match.js",
-          "app/chapters/ch01_tax_housing/property-regulated.js",
-          "app/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/regions.pdf",
-          "app/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/history.pdf"
+          "app/chapters/ch02_tax_housing/regulated-areas.js",
+          "app/chapters/ch02_tax_housing/regulated-match.js",
+          "app/chapters/ch02_tax_housing/property-regulated.js",
+          "app/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/regions.pdf",
+          "app/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/history.pdf"
         ],
         "stages": [
           {
@@ -795,10 +795,10 @@ window.COURSE = {
       "build": {
         "prerequisite": "5번의 사실확인서와 6~7번의 대금·지역 검토를 준비합니다. 세율이나 비과세 판단을 모델이 생성하게 하지 않고 기존 계산기의 지원 범위와 담당자 선택을 사용합니다.",
         "files": [
-          "app/chapters/ch01_tax_housing/capital-gains.js",
-          "app/chapters/ch01_tax_housing/capital-gains-panel.js",
-          "app/chapters/ch01_tax_housing/residence-period.js",
-          "app/chapters/ch01_tax_housing/exemption-review.js",
+          "app/chapters/ch02_tax_housing/capital-gains.js",
+          "app/chapters/ch02_tax_housing/capital-gains-panel.js",
+          "app/chapters/ch02_tax_housing/residence-period.js",
+          "app/chapters/ch02_tax_housing/exemption-review.js",
           "tests/capital-gains.cjs",
           "tests/capital-gains-panel.cjs"
         ],
@@ -891,12 +891,12 @@ window.COURSE = {
       "build": {
         "prerequisite": "5번의 상담 기록과 8번 검토 결과를 준비합니다. 프로젝트에 포함된 R08 기반 출력 서식을 사용하며 전자신고 전송은 포함하지 않습니다.",
         "files": [
-          "app/chapters/ch01_tax_housing/filing-model.js",
-          "app/chapters/ch01_tax_housing/filing.js",
-          "app/chapters/ch01_tax_housing/filing-render.js",
-          "app/chapters/ch01_tax_housing/filing-report.js",
-          "app/chapters/ch01_tax_housing/filing-report.css",
-          "app/chapters/ch01_tax_housing/filing/build_filing_templates.py",
+          "app/chapters/ch02_tax_housing/filing-model.js",
+          "app/chapters/ch02_tax_housing/filing.js",
+          "app/chapters/ch02_tax_housing/filing-render.js",
+          "app/chapters/ch02_tax_housing/filing-report.js",
+          "app/chapters/ch02_tax_housing/filing-report.css",
+          "app/chapters/ch02_tax_housing/filing/build_filing_templates.py",
           "tests/filing.cjs"
         ],
         "stages": [

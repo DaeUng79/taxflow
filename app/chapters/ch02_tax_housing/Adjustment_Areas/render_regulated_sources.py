@@ -2,7 +2,7 @@
 from pathlib import Path
 import fitz
 
-root = Path(__file__).resolve().parents[4] / 'app/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas'
+root = Path(__file__).resolve().parents[4] / 'app/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas'
 output = root / 'pages'
 output.mkdir(exist_ok=True)
 for name in ('regions', 'history'):

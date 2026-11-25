@@ -8,8 +8,8 @@ import re
 from urllib.parse import parse_qs, urlsplit
 from ...access import allowed_request
 from ...db import connect
-from ..ch02_pdf_Parsing import api
-from ..ch02_pdf_Parsing.documents import read_json, validate_pages
+from ..ch01_pdf_Parsing import api
+from ..ch01_pdf_Parsing.documents import read_json, validate_pages
 
 
 def handle(handler):

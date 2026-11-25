@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import fitz
 from app.db import initialize, connect
-from app.chapters.ch01_tax_housing.resident import handle
+from app.chapters.ch02_tax_housing.resident import handle
 
 class Request:
     def __init__(self,path,method='GET',data=None):

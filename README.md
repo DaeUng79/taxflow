@@ -28,7 +28,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-`requirements.txt`에는 PDF 페이지 변환에 필요한 PyMuPDF가 포함되어 있습니다. 로컬 AI 분석에 사용하는 llama.cpp와 Qwen3-VL 모델 파일은 Python 패키지와 별도로 준비합니다. 자세한 방법은 [계약서 파싱 안내](app/chapters/ch02_pdf_Parsing/README.md)를 참고하세요.
+`requirements.txt`에는 PDF 페이지 변환에 필요한 PyMuPDF가 포함되어 있습니다. 로컬 AI 분석에 사용하는 llama.cpp와 Qwen3-VL 모델 파일은 Python 패키지와 별도로 준비합니다. 자세한 방법은 [계약서 파싱 안내](app/chapters/ch01_pdf_Parsing/README.md)를 참고하세요.
 
 의존성 설치가 끝나면 다음 명령으로 서버를 켭니다.
 
@@ -74,7 +74,7 @@ PowerShell이 활성화 스크립트 실행을 막으면 현재 창에서 `Set-E
 - **새 상담 / 상담 저장**: 새 기록을 작성하거나 열린 기록을 수정해 저장합니다. 저장할 때 컴퓨터의 날짜와 시간이 상담일로 기록되며, 수정 후 저장할 때 갱신됩니다.
 - **상담 현황**: 이름으로 검색하고 기록을 열 수 있습니다. 삭제 버튼을 누르면 확인창이 표시됩니다. 삭제한 기록은 복구할 수 없습니다.
 
-챕터 02에서는 로컬 llama.cpp 비전 모델을 이용해 스캔 계약서를 페이지별로 분석할 수 있습니다. 실행 및 모델 준비 방법은 [계약서 파싱 안내](app/chapters/ch02_pdf_Parsing/README.md)를 참고하세요. 상담 화면에서 저장된 상담의 취득계약서를 열면 PDF와 분석 이력이 해당 상담에 저장됩니다. 독립 파싱 화면은 기존처럼 JSON 다운로드로 동작합니다. 메인 화면에는 상담·사실확인서, 매매대금 수수 확인, 지역 이력 조회, 양도소득세 검토, 신고서 작성·출력이 연결되어 있습니다.
+챕터 01에서는 로컬 llama.cpp 비전 모델을 이용해 스캔 계약서를 페이지별로 분석할 수 있습니다. 실행 및 모델 준비 방법은 [계약서 파싱 안내](app/chapters/ch01_pdf_Parsing/README.md)를 참고하세요. 상담 화면에서 저장된 상담의 취득계약서를 열면 PDF와 분석 이력이 해당 상담에 저장됩니다. 독립 파싱 화면은 기존처럼 JSON 다운로드로 동작합니다. 메인 화면에는 상담·사실확인서, 매매대금 수수 확인, 지역 이력 조회, 양도소득세 검토, 신고서 작성·출력이 연결되어 있습니다.
 
 ## 데이터 저장
 
@@ -124,7 +124,7 @@ TAXFLOW_VibeCode/
 
 ## 작업할 때
 
-1. 여섯 실무 도구의 화면은 `app/chapters/ch01_tax_housing/`에 있으며 기능별 파일은 해당 폴더의 README를 참고합니다.
+1. 여섯 실무 도구의 화면은 `app/chapters/ch02_tax_housing/`에 있으며 기능별 파일은 해당 폴더의 README를 참고합니다.
 2. DB 연결과 스키마는 `app/db/`에서 관리하고, 사용자에게 필요한 안내는 해당 미션 화면에 반영합니다.
 3. 메인의 도구 목록은 `app/assets/js/missions.js`의 `practice`, 연결은 `app.js`의 `practiceUrl`, 작업 탭 선택은 상담 화면 `app.js`의 `entryViews`에서 관리합니다.
 4. 변경 후 화면과 링크, Python·JavaScript 문법, 필요한 API 응답을 확인합니다. 새 Python 패키지가 필요하면 버전을 `requirements.txt`에 기록합니다.
@@ -148,13 +148,13 @@ SQLite 파일은 기본적으로 암호화되지 않으며 PDF 원본과 분석 
 
 상담 화면의 **조정대상지역 현황** 탭에서 지역명으로 지정·해제 이력과 원본 PDF의 출처 페이지를 확인할 수 있습니다. 탭을 열면 전체 이력이 표로 표시되며 지역명 검색으로 결과를 좁힐 수 있습니다. 같은 지역은 지정 기간마다 별도 행으로 표시됩니다. 검색 결과는 개별 필지의 지정 여부를 판정하지 않습니다. 최신 고시, 실제 주소 및 제외 지역을 확인하세요.
 
-제공받은 지역별 이력 DB는 상담 DB와 별도인 `data/reference/regulated_area_history.sqlite3`에 보관합니다. 해제일이 비어 있으면 DB에 해제 기록이 없다는 뜻이며 현재 지정 여부를 보증하지 않습니다. 읍·면 예외, 조기 해제나 개발지구 경계가 있는 행은 비고와 원본을 확인해야 합니다. 원본은 `app/chapters/ch01_tax_housing/Adjustment_Areas/regulated-areas/`에 있습니다.
+제공받은 지역별 이력 DB는 상담 DB와 별도인 `data/reference/regulated_area_history.sqlite3`에 보관합니다. 해제일이 비어 있으면 DB에 해제 기록이 없다는 뜻이며 현재 지정 여부를 보증하지 않습니다. 읍·면 예외, 조기 해제나 개발지구 경계가 있는 행은 비고와 원본을 확인해야 합니다. 원본은 `app/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/`에 있습니다.
 
 지역 자료를 다시 생성할 때는 프로젝트 루트에서 아래 명령을 사용합니다. 기존 결과물이 덮어써지므로 원본을 확인한 뒤 실행하세요.
 
 ```bash
-python app/chapters/ch01_tax_housing/Adjustment_Areas/render_regulated_sources.py
-python app/chapters/ch01_tax_housing/Adjustment_Areas/build_regulated_areas.py
+python app/chapters/ch02_tax_housing/Adjustment_Areas/render_regulated_sources.py
+python app/chapters/ch02_tax_housing/Adjustment_Areas/build_regulated_areas.py
 ```
 
 첫 번째는 웹 화면의 PDF 페이지 이미지를 생성합니다. 두 번째는 `data/reference/regulated_areas.sqlite3` 페이지 추출본만 재생성하며 지역별 이력 검색에 쓰는 `regulated_area_history.sqlite3`는 갱신하지 않습니다.
@@ -173,7 +173,7 @@ python app/chapters/ch01_tax_housing/Adjustment_Areas/build_regulated_areas.py
 
 **인쇄 / PDF 저장**은 현재 화면의 입력값으로 출력하며 저장하지 않은 변경도 포함합니다. 기본 A4 세로 3장, 비용 상세 명세는 한 쪽에 최대 18건을 배치하며 긴 내용은 줄 수에 따라 추가 페이지로 나눕니다. 인쇄 설정은 A4, 배율 100%, 여백 없음, 브라우저 머리글/바닥글 해제를 사용하세요. 서식 자체의 쪽 표기는 원본을 유지하고 상단에 실제 출력 쪽수를 따로 표시합니다. 서명과 관리번호는 자동 생성하지 않습니다.
 
-서식 배경은 제공된 R08의 가상 인적정보·금액을 제거한 이미지이며 원본은 변경하지 않습니다. 재생성은 `.venv/bin/python app/chapters/ch01_tax_housing/filing/build_filing_templates.py /path/to/B_검토본_R08.pdf`로 실행합니다. 검증은 `node --test tests/filing.cjs`와 `.venv/bin/python -m unittest tests.test_filing_storage`를 사용합니다. 기존 서버에서도 새 화면은 새로고침으로 사용할 수 있으며, 구버전 클라이언트의 신고서 필드 보존 처리는 서버 재시작 후 적용됩니다.
+서식 배경은 제공된 R08의 가상 인적정보·금액을 제거한 이미지이며 원본은 변경하지 않습니다. 재생성은 `.venv/bin/python app/chapters/ch02_tax_housing/filing/build_filing_templates.py /path/to/B_검토본_R08.pdf`로 실행합니다. 검증은 `node --test tests/filing.cjs`와 `.venv/bin/python -m unittest tests.test_filing_storage`를 사용합니다. 기존 서버에서도 새 화면은 새로고침으로 사용할 수 있으며, 구버전 클라이언트의 신고서 필드 보존 처리는 서버 재시작 후 적용됩니다.
 
 신고자 주민등록번호는 사실확인서의 `taxpayerId`에 저장되고 신고서 주민등록번호의 기본값으로 반영됩니다. 확인 완료된 양도계약서의 매도인 중 현재 신고자와 일치하고 번호가 단일하게 확인되면 기존 상담의 빈 칸에도 불러옵니다. 불러온 값을 확인한 뒤 상담 저장을 눌러야 DB에 반영됩니다. 신고서에서 별도로 수정한 번호는 유지하고 차이가 있으면 확인사항에 표시합니다. 국내 거주자 여부는 사실확인서의 `resident` 값을 이용해 신고서의 거주자·비거주자에 표시하며 내·외국인과 거주지국을 자동 추정하지 않습니다. 계산에 필요한 입력에 오류가 있으면 계산금액을 비우고 작성 상태 확인에 원인을 표시합니다. 비용 구분만 미선택된 경우에는 검토 금액을 표시하고 분류에 의존하는 칸만 비워 둡니다.
 

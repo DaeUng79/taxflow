@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, urlsplit
 from ...access import allowed_request
 from ...db import connect
 from ...db.payment_dates import add_payment_dates
-from ..ch02_pdf_Parsing import api as vision
-from ..ch02_pdf_Parsing import documents as shared_documents
+from ..ch01_pdf_Parsing import api as vision
+from ..ch01_pdf_Parsing import documents as shared_documents
 
 
 def handle(handler):

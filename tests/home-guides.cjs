@@ -69,21 +69,24 @@ test('all guides render with valid tool targets and all copy actions include the
     assert.ok(html.includes(mission.title));
     if(index<3){assert.ok(!html.includes('class="coding-step"'));continue;}
     assert.equal(mission.view,course.practice[index-3].id);
-    assert.ok(html.includes(`?view=${mission.view}`));
-    assert.equal((html.match(/class="coding-step"/g)||[]).length,mission.build.stages.length);
+    assert.ok(html.includes("완성 화면 미리보기"));
+    assert.ok(html.includes("한눈에 보는 구현 흐름"));
+    assert.equal((html.match(/class="doc-step"/g)||[]).length,mission.build.stages.length+1);
     for (const key of ['context',...mission.build.stages.map((_,i)=>String(i)),'verify']) {
       const target={closest:selector=>selector==='[data-build-prompt]'?{dataset:{buildPrompt:key}}:null};
       h.events.click({target});
       await Promise.resolve();
       const expected=h.api.buildPrompt(mission,key);
       assert.equal(h.context.copied,expected);
-      assert.ok(expected.includes('별도 테스트 DB'));
+      assert.ok(expected.includes('보존'));
+      if (/^\d+$/.test(key)) assert.ok(expected.includes('가상 자료')); 
       if(/^\d+$/.test(key))assert.ok(expected.includes(mission.build.stages[Number(key)].prompt));
     }
     h.api.state.tab='sample';h.api.render();
     html=h.element('#main').innerHTML;
-    assert.ok(html.includes('실제 작업 화면 열기'));
-    assert.ok(!html.includes('미리 작성한 교육용 예시'));
+    assert.ok(html.includes('이미지 등록 요청 복사'));
+    assert.ok(html.includes(`mission-${mission.id}-result.png`));
+    assert.ok(!html.includes('실제 작업 화면 열기'));
   }
 });
 
@@ -94,7 +97,7 @@ test('clipboard failure exposes the full prompt for manual copying', async()=>{
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(h.element('#dialog').open,true);
   assert.ok(h.element('#dialog-content').innerHTML.includes('복사할 개발 프롬프트'));
-  assert.ok(h.element('#dialog-content').innerHTML.includes('아직 저장하지 않은 상담에서도 계약서 분석'));
+  assert.ok(h.element('#dialog-content').innerHTML.includes('저장하지 않은 상담에서도 계약서 분석'));
 });
 
 test('timeline, overview and legacy final lesson URLs remain renderable',()=>{

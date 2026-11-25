@@ -12,18 +12,20 @@ from .access import allowed_request, bind_address
 from .db import connect, initialize
 from .db.demo_notes import list_demo_notes
 from .db import mission_progress
-from .chapters.ch01_tax_housing import acquisition as acquisition_api
-from .chapters.ch01_tax_housing import resident as resident_api
-from .chapters.ch01_tax_housing import regulated_areas
-from .chapters.ch02_pdf_Parsing import api as intake_api
-from .chapters.ch02_pdf_Parsing import documents as document_api
+from .chapters.ch02_tax_housing import acquisition as acquisition_api
+from .chapters.ch02_tax_housing import resident as resident_api
+from .chapters.ch02_tax_housing import regulated_areas
+from .chapters.ch01_pdf_Parsing import api as intake_api
+from .chapters.ch01_pdf_Parsing import documents as document_api
 
 FRONTEND_ROOT = Path(__file__).resolve().parent
 OLD_CHAPTER_PATHS = {
-    "01_consultation": "ch01_tax_housing",
-    "ch01_consultation": "ch01_tax_housing",
-    "02_intake": "ch02_pdf_Parsing",
-    "ch02_intake": "ch02_pdf_Parsing",
+    "ch01_tax_housing": "ch02_tax_housing",
+    "ch02_pdf_Parsing": "ch01_pdf_Parsing",
+    "01_consultation": "ch02_tax_housing",
+    "ch01_consultation": "ch02_tax_housing",
+    "02_intake": "ch01_pdf_Parsing",
+    "ch02_intake": "ch01_pdf_Parsing",
     "03_evidence": "ch03_evidence",
     "04_review": "ch04_review",
     "05_report": "ch05_report",
@@ -260,7 +262,7 @@ class Handler(SimpleHTTPRequestHandler):
             old_prefix = f"/chapters/{old_name}"
             if path == old_prefix or path.startswith(old_prefix + "/"):
                 suffix = path[len(old_prefix):]
-                if new_name == "ch01_tax_housing" and (suffix == "/consultation" or suffix.startswith("/consultation/")):
+                if new_name == "ch02_tax_housing" and (suffix == "/consultation" or suffix.startswith("/consultation/")):
                     suffix = suffix[len("/consultation"):] or "/"
                 location = f"/chapters/{quote(new_name)}{suffix}"
                 if requested.query:
@@ -272,10 +274,10 @@ class Handler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 return
         # Former workspace URLs retain their suffix and query after moving files up.
-        old_workspace = "/chapters/ch01_tax_housing/consultation"
+        old_workspace = "/chapters/ch02_tax_housing/consultation"
         if path == old_workspace or path.startswith(old_workspace + "/"):
             suffix = path[len(old_workspace):]
-            location = "/chapters/ch01_tax_housing" + (suffix or "/")
+            location = "/chapters/ch02_tax_housing" + (suffix or "/")
             if requested.query:
                 location += "?" + requested.query
             self.send_response(302)
@@ -287,7 +289,7 @@ class Handler(SimpleHTTPRequestHandler):
         # Preserve bookmarked regional reference URLs after moving the directory.
         old_reference = "/reference/"
         if path.startswith(old_reference):
-            location = "/chapters/ch01_tax_housing/Adjustment_Areas/" + path[len(old_reference):]
+            location = "/chapters/ch02_tax_housing/Adjustment_Areas/" + path[len(old_reference):]
             if requested.query:
                 location += "?" + requested.query
             self.send_response(302)

@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const {matchRegulatedAddress} = require('../app/chapters/ch01_tax_housing/regulated-match.js');
+const {matchRegulatedAddress} = require('../app/chapters/ch02_tax_housing/regulated-match.js');
 const rows = [
   {province:'경상남도', region:'창원시 성산구', scope:'administrative'},
   {province:'경상남도', region:'창원시 다른 개발지구', scope:'development_zone'},
