@@ -34,6 +34,32 @@ OLD_CHAPTER_PATHS = {
 
 class Handler(SimpleHTTPRequestHandler):
     def send_head(self):
+        # Expose only the explicitly selected training documents, never the data directory.
+        practice_files = {
+            "/practice-data/mission04/acquisition.pdf": ("acquisition.pdf", "매수용부동산계약서.pdf"),
+            "/practice-data/mission04/transfer.pdf": ("transfer.pdf", "매도용부동산계약서.pdf"),
+            "/practice-data/mission04/resident.pdf": ("resident.pdf", "초본_가상.pdf"),
+        }
+        requested = urlsplit(self.path).path
+        if requested in practice_files:
+            directory = (FRONTEND_ROOT.parent / "data" / "mission04").resolve()
+            file_name, download_name = practice_files[requested]
+            target = (directory / file_name).resolve()
+            if target.parent != directory or not target.is_file():
+                self.send_error(404)
+                return None
+            try:
+                file = target.open("rb")
+            except OSError:
+                self.send_error(404)
+                return None
+            self.send_response(200)
+            self.send_header("Content-Type", "application/pdf")
+            self.send_header("Content-Length", str(os.fstat(file.fileno()).st_size))
+            self.send_header("Content-Disposition", f'attachment; filename="{file_name}"; filename*=UTF-8\'\'{quote(download_name)}')
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return file
         # The app directory contains both web assets and Python code.
         # Serve only the public asset types from the two web directories.
         root = Path(self.directory).resolve()

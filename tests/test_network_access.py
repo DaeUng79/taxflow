@@ -105,6 +105,14 @@ class NetworkAccessTests(unittest.TestCase):
                                 '/chapters/ch02_tax_housing/Adjustment_Areas/',
                                 '/assets/.DS_Store'):
                         self.assertEqual(request(method, url)[0], 404, (method, url))
+                # Only explicitly listed practice PDFs are available; private data is not served.
+                for name in ('acquisition.pdf', 'transfer.pdf', 'resident.pdf'):
+                    status, payload = request('GET', f'/practice-data/mission04/{name}')
+                    self.assertEqual(status, 200)
+                    self.assertEqual(payload, (FRONTEND_ROOT.parent / 'data' / 'mission04' / name).read_bytes())
+                    self.assertEqual(request('HEAD', f'/practice-data/mission04/{name}')[0], 200)
+                for url in ('/practice-data/mission04/', '/practice-data/mission04/other.pdf', '/data/taxflow.sqlite3', '/practice-data/mission04/../taxflow.sqlite3'):
+                    self.assertEqual(request('GET', url)[0], 404, url)
                 self.assertEqual(request('GET', '/assets/js/app.js')[0], 200)
                 self.assertEqual(request('GET', '/index.html')[0], 200)
                 self.assertEqual(request('GET', '/api/health')[0], 200)

@@ -14,3 +14,10 @@ models/qwen3-vl-8b
 !/data/reference/
 !/data/reference/regulated_areas.sqlite3
 !/data/reference/regulated_area_history.sqlite3
+
+# 교육생에게 제공하는 미션 04 가상 실습 자료만 포함
+!/data/mission04/
+/data/mission04/*
+!/data/mission04/acquisition.pdf
+!/data/mission04/transfer.pdf
+!/data/mission04/resident.pdf
