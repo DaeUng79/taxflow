@@ -72,6 +72,7 @@ test('all guides render with valid tool targets and all copy actions include the
     assert.ok(html.includes("완성 화면 미리보기"));
     assert.ok(html.includes("한눈에 보는 구현 흐름"));
     if (mission.id === 4) for (const name of ["acquisition.pdf","transfer.pdf","resident.pdf"]) assert.ok(html.includes(`/practice-data/mission04/${name}`));
+    if (mission.id === 7) for (const name of ["regions.pdf","history.pdf"]) assert.ok(html.includes(`/chapters/ch02_tax_housing/Adjustment_Areas/regulated-areas/${name}`));
     assert.equal((html.match(/class="doc-step"/g)||[]).length,mission.build.stages.length+1);
     for (const key of ['context',...mission.build.stages.map((_,i)=>String(i)),'verify']) {
       const target={closest:selector=>selector==='[data-build-prompt]'?{dataset:{buildPrompt:key}}:null};
